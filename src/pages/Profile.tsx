@@ -6,63 +6,52 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { RankingsDialog } from "@/components/RankingsDialog";
 import { BookOpen, Target, GraduationCap, Trophy, User, Rocket, Star, Heart, Zap, Crown, Shield, Sparkles, Coins } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useProfile } from "@/hooks/useProfile";
+import { useProgress } from "@/hooks/useProgress";
+import { useStore } from "@/hooks/useStore";
 import { useToast } from "@/hooks/use-toast";
 
 const iconMap: { [key: string]: any } = {
-  "icon-user": User,
-  "icon-star": Star,
-  "icon-rocket": Rocket,
-  "icon-crown": Crown,
-  "icon-shield": Shield,
-  "icon-heart": Heart,
-  "icon-zap": Zap,
-  "icon-sparkles": Sparkles,
+  "User": User,
+  "Star": Star,
+  "Rocket": Rocket,
+  "Crown": Crown,
+  "Shield": Shield,
+  "Heart": Heart,
+  "Zap": Zap,
+  "Sparkles": Sparkles,
 };
 
 const Profile = () => {
   const [showRankings, setShowRankings] = useState(false);
-  const [selectedIcon, setSelectedIcon] = useState("icon-user");
-  const [purchasedIcons, setPurchasedIcons] = useState<string[]>(["icon-user"]);
-  const [userStats, setUserStats] = useState({
-    points: 1200,
-    coins: 0,
-    completedClasses: 0,
-    completedExercises: 0,
-    completedChallenges: 0,
-    materialsRead: 0,
-  });
+  const { profile, isLoading, updateProfile } = useProfile();
+  const { progress } = useProgress();
+  const { purchases } = useStore();
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Load user data from localStorage
-    const savedIcon = localStorage.getItem("selectedIcon") || "icon-user";
-    setSelectedIcon(savedIcon);
-
-    const purchased = JSON.parse(localStorage.getItem("purchasedIcons") || '["icon-user"]');
-    setPurchasedIcons(purchased);
-
-    const stats = JSON.parse(localStorage.getItem("userStats") || "{}");
-    setUserStats({
-      points: stats.points || 1200,
-      coins: stats.coins || 0,
-      completedClasses: stats.completedClasses || 0,
-      completedExercises: stats.completedExercises || 0,
-      completedChallenges: stats.completedChallenges || 0,
-      materialsRead: stats.materialsRead || 15,
-    });
-  }, []);
+  if (isLoading || !profile) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Carregando perfil...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   const handleSelectIcon = (iconId: string) => {
-    setSelectedIcon(iconId);
-    localStorage.setItem("selectedIcon", iconId);
+    updateProfile({ avatar_icon: iconId });
     toast({
       title: "Ícone atualizado!",
       description: "Seu novo ícone de perfil foi salvo com sucesso.",
     });
   };
 
-  const SelectedIconComponent = iconMap[selectedIcon] || User;
+  const SelectedIconComponent = iconMap[profile.avatar_icon || "User"] || User;
   
   const getRankName = (points: number) => {
     if (points >= 3000) return "Grão-Mestre";
@@ -86,8 +75,14 @@ const Profile = () => {
     return { name: "Bronze", target: 100 };
   };
 
-  const currentRank = getRankName(userStats.points);
-  const nextRank = getNextRank(userStats.points);
+  const currentRank = getRankName(profile.points || 0);
+  const nextRank = getNextRank(profile.points || 0);
+
+  // Calculate stats from progress
+  const completedClasses = progress.filter(p => p.content_type === 'aula' && p.completed).length;
+  const completedExercises = progress.filter(p => p.content_type === 'exercicio' && p.completed).length;
+  const completedChallenges = progress.filter(p => p.content_type === 'desafio' && p.completed).length;
+  const materialsRead = progress.filter(p => p.content_type === 'material' && p.completed).length;
 
   return (
     <AppLayout>
@@ -108,14 +103,14 @@ const Profile = () => {
                     <div className="text-sm text-muted-foreground">Ranking Atual</div>
                     <div className="flex items-center gap-2 bg-yellow-500/10 px-3 py-1 rounded-full">
                       <Coins className="h-4 w-4 text-yellow-600" />
-                      <span className="text-sm font-bold text-yellow-600">{userStats.coins}</span>
+                      <span className="text-sm font-bold text-yellow-600">{profile.coins || 0}</span>
                     </div>
                   </div>
                   <div className="text-2xl font-bold text-primary mb-1">{currentRank}</div>
-                  {userStats.points < 3000 && (
+                  {(profile.points || 0) < 3000 && (
                     <>
                       <div className="text-sm text-muted-foreground mb-1">Próximo Ranking: {nextRank.name}</div>
-                      <div className="text-sm text-primary mb-3">{userStats.points}/{nextRank.target} Pontuação</div>
+                      <div className="text-sm text-primary mb-3">{profile.points || 0}/{nextRank.target} Pontuação</div>
                     </>
                   )}
                   <Button variant="outline" size="sm" onClick={() => setShowRankings(true)}>
@@ -129,34 +124,18 @@ const Profile = () => {
                 
                 <div>
                   <Label>Nome Completo</Label>
-                  <Input value="Alyson Souza" className="bg-muted" readOnly />
+                  <Input value={profile.display_name || ''} className="bg-muted" readOnly />
+                </div>
+
+                <div>
+                  <Label>Email</Label>
+                  <Input value={profile.email || ''} className="bg-muted" readOnly />
                 </div>
 
                 <div>
                   <Label>Ranking</Label>
                   <Input value={currentRank} className="bg-muted" readOnly />
                 </div>
-
-                <div>
-                  <Label>Universidade</Label>
-                  <Input value="Universidade Federal do Amazonas" className="bg-muted" readOnly />
-                </div>
-
-                <div>
-                  <Label>Número</Label>
-                  <Input value="(92) 99999-9999" className="bg-muted" readOnly />
-                </div>
-
-                <div>
-                  <Label>Nova Senha</Label>
-                  <Input 
-                    type="password" 
-                    placeholder="Deixe em branco para não alterar" 
-                    className="bg-background"
-                  />
-                </div>
-
-                <Button className="w-full">Salvar Alterações</Button>
               </div>
             </CardContent>
           </Card>
@@ -171,14 +150,14 @@ const Profile = () => {
                 Selecione um ícone para usar como sua foto de perfil
               </p>
               <div className="grid grid-cols-4 gap-4">
-                {purchasedIcons.map((iconId) => {
-                  const IconComponent = iconMap[iconId] || User;
-                  const isSelected = selectedIcon === iconId;
+                {purchases.map((itemId) => {
+                  const IconComponent = iconMap[itemId] || User;
+                  const isSelected = (profile.avatar_icon || "User") === itemId;
                   
                   return (
                     <button
-                      key={iconId}
-                      onClick={() => handleSelectIcon(iconId)}
+                      key={itemId}
+                      onClick={() => handleSelectIcon(itemId)}
                       className={`p-6 rounded-lg border-2 transition-all hover:scale-105 ${
                         isSelected
                           ? "border-primary bg-primary/10"
@@ -192,7 +171,7 @@ const Profile = () => {
                   );
                 })}
               </div>
-              {purchasedIcons.length === 1 && (
+              {purchases.length <= 1 && (
                 <p className="text-sm text-muted-foreground mt-4 text-center">
                   Visite a Loja para comprar mais ícones!
                 </p>
@@ -210,19 +189,19 @@ const Profile = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">Materiais Lidos</div>
-                  <div className="text-3xl font-bold">{userStats.materialsRead}</div>
+                  <div className="text-3xl font-bold">{materialsRead}</div>
                 </div>
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">Desafios Completos</div>
-                  <div className="text-3xl font-bold">{userStats.completedChallenges}</div>
+                  <div className="text-3xl font-bold">{completedChallenges}</div>
                 </div>
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">Aulas Completas</div>
-                  <div className="text-3xl font-bold">{userStats.completedClasses}</div>
+                  <div className="text-3xl font-bold">{completedClasses}</div>
                 </div>
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">Exercícios Completos</div>
-                  <div className="text-3xl font-bold">{userStats.completedExercises}</div>
+                  <div className="text-3xl font-bold">{completedExercises}</div>
                 </div>
               </div>
             </CardContent>
@@ -233,16 +212,19 @@ const Profile = () => {
               <CardTitle>Últimos Materiais Lidos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {[
-                { icon: BookOpen, title: "Introdução ao SQL" },
-                { icon: BookOpen, title: "Primary Keys" },
-                { icon: BookOpen, title: "INNER JOINS" },
-              ].map((item, index) => (
-                <div key={index} className="flex items-center gap-3 text-sm">
-                  <item.icon className="h-4 w-4 text-muted-foreground" />
-                  <span>{item.title}</span>
-                </div>
-              ))}
+              {progress
+                .filter(p => p.content_type === 'material' && p.completed)
+                .slice(-3)
+                .reverse()
+                .map((item, index) => (
+                  <div key={index} className="flex items-center gap-3 text-sm">
+                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                    <span>Material #{item.content_id}</span>
+                  </div>
+                ))}
+              {progress.filter(p => p.content_type === 'material' && p.completed).length === 0 && (
+                <p className="text-sm text-muted-foreground">Nenhum material lido ainda</p>
+              )}
             </CardContent>
           </Card>
 
@@ -252,15 +234,18 @@ const Profile = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               {[
-                { icon: GraduationCap, title: "Primeira aula concluída" },
-                { icon: Trophy, title: "Especialista em SQL" },
-                { icon: Target, title: "10 Desafios resolvidos" },
-              ].map((item, index) => (
+                { icon: GraduationCap, title: "Primeira aula concluída", show: completedClasses > 0 },
+                { icon: Trophy, title: "Especialista em SQL", show: completedChallenges > 0 },
+                { icon: Target, title: "10 Desafios resolvidos", show: completedChallenges >= 10 },
+              ].filter(item => item.show).slice(0, 3).map((item, index) => (
                 <div key={index} className="flex items-center gap-3 text-sm">
                   <item.icon className="h-4 w-4 text-muted-foreground" />
                   <span>{item.title}</span>
                 </div>
               ))}
+              {completedClasses === 0 && completedChallenges === 0 && (
+                <p className="text-sm text-muted-foreground">Nenhuma conquista ainda</p>
+              )}
             </CardContent>
           </Card>
         </div>

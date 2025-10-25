@@ -8,6 +8,9 @@ import { ExerciseSuccessDialog } from "@/components/ExerciseSuccessDialog";
 import { ExerciseErrorDialog } from "@/components/ExerciseErrorDialog";
 import CodeMirror from "@uiw/react-codemirror";
 import { sql } from "@codemirror/lang-sql";
+import { useProgress } from "@/hooks/useProgress";
+import { useProfile } from "@/hooks/useProfile";
+import { useAchievements } from "@/hooks/useAchievements";
 
 const sqlKeywords = [
   "USE", "CREATE", "TABLE", "SELECT", "FROM", "WHERE", 
@@ -23,15 +26,34 @@ const ExerciseDetail = () => {
   const [showSyntax, setShowSyntax] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
-  const [attempts, setAttempts] = useState(0);
+  
+  const { markComplete, incrementAttempts, getAttempts } = useProgress();
+  const { updatePoints, updateCoins } = useProfile();
+  const { updateProgress } = useAchievements();
+  
+  const exerciseId = parseInt(id || "1");
+  const attempts = getAttempts('exercicio', exerciseId);
+  const pointsReward = 50;
+  const coinsReward = 50;
 
   const handleExecute = () => {
-    const newAttempts = attempts + 1;
-    setAttempts(newAttempts);
+    // Increment attempts
+    incrementAttempts({ contentType: 'exercicio', contentId: exerciseId });
 
     // Simple validation for demo - check if code contains CREATE TABLE
     const codeUpper = code.toUpperCase();
     if (codeUpper.includes("CREATE TABLE") && codeUpper.includes("LIVROS")) {
+      // Mark as complete
+      markComplete({ contentType: 'exercicio', contentId: exerciseId });
+      
+      // Award points and coins
+      updatePoints(pointsReward);
+      updateCoins(coinsReward);
+      
+      // Update achievement progress
+      updateProgress({ achievementId: 'five-exercises' });
+      updateProgress({ achievementId: 'speed-runner' });
+      
       setShowSuccess(true);
     } else {
       setShowError(true);
@@ -55,7 +77,7 @@ const ExerciseDetail = () => {
         </Button>
 
         <div>
-          <h1 className="text-4xl font-bold mb-8 text-foreground">Exercício 1 - Crie um banco de dados</h1>
+          <h1 className="text-4xl font-bold mb-8 text-foreground">Exercício {exerciseId} - Crie um banco de dados</h1>
 
           <Card className="mb-6">
             <CardHeader>
@@ -135,9 +157,9 @@ const ExerciseDetail = () => {
       <ExerciseSuccessDialog
         open={showSuccess}
         onOpenChange={setShowSuccess}
-        attempts={attempts}
-        points={50}
-        coins={50}
+        attempts={attempts + 1}
+        points={pointsReward}
+        coins={coinsReward}
         resultTable={{
           columns: ["id_livro", "titulo", "ano_publicacao"],
           rows: [
@@ -150,7 +172,7 @@ const ExerciseDetail = () => {
         open={showError}
         onOpenChange={setShowError}
         errorMessage="Erro SQL detectado: Verifique a sintaxe do comando CREATE TABLE."
-        attempts={attempts}
+        attempts={attempts + 1}
         hint="Lembre-se de usar o comando CREATE DATABASE antes de criar a tabela com CREATE TABLE."
       />
     </AppLayout>

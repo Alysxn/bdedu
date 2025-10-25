@@ -1,7 +1,7 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { XCircle, Lightbulb } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface ExerciseErrorDialogProps {
   open: boolean;
@@ -25,6 +25,13 @@ export const ExerciseErrorDialog = ({
     onOpenChange(false);
   };
 
+  // Reset hint visibility when dialog opens
+  useEffect(() => {
+    if (open) {
+      setShowHint(false);
+    }
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-lg">
@@ -41,7 +48,8 @@ export const ExerciseErrorDialog = ({
             Tentativas até agora: {attempts}
           </p>
 
-          {hint && attempts > 1 && (
+          {/* Show hint button from first attempt */}
+          {hint && (
             <div className="mt-4">
               {!showHint ? (
                 <Button

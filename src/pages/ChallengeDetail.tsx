@@ -3,11 +3,14 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Play, Code, Info, Trophy } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import CodeMirror from "@uiw/react-codemirror";
 import { sql } from "@codemirror/lang-sql";
 import { ExerciseSuccessDialog } from "@/components/ExerciseSuccessDialog";
 import { ExerciseErrorDialog } from "@/components/ExerciseErrorDialog";
+import { useProgress } from "@/hooks/useProgress";
+import { useProfile } from "@/hooks/useProfile";
+import { useAchievements } from "@/hooks/useAchievements";
 
 const sqlKeywords = [
   "USE", "CREATE", "TABLE", "SELECT", "FROM", "WHERE", 
@@ -19,20 +22,29 @@ const sqlKeywords = [
 
 const ChallengeDetail = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [code, setCode] = useState("-- Escreva sua consulta SQL aqui\n");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
-  const [attempts, setAttempts] = useState(0);
   const [showContext, setShowContext] = useState(true);
   const [showSyntax, setShowSyntax] = useState(true);
+
+  const { markComplete, incrementAttempts, getAttempts } = useProgress();
+  const { updatePoints, updateCoins } = useProfile();
+  const { updateProgress } = useAchievements();
+  
+  const challengeId = parseInt(id || "1");
+  const attempts = getAttempts('desafio', challengeId);
+  const pointsReward = 150;
+  const coinsReward = 75;
 
   const insertKeyword = (keyword: string) => {
     setCode(code + " " + keyword);
   };
 
   const handleExecute = () => {
-    const newAttempts = attempts + 1;
-    setAttempts(newAttempts);
+    // Increment attempts
+    incrementAttempts({ contentType: 'desafio', contentId: challengeId });
 
     // Simulated validation - checks for key SQL elements
     const codeUpper = code.toUpperCase();
@@ -42,6 +54,16 @@ const ChallengeDetail = () => {
     const hasJoin = codeUpper.includes("JOIN");
 
     if (hasSelect && hasFrom && hasJoin && hasWhere) {
+      // Mark as complete
+      markComplete({ contentType: 'desafio', contentId: challengeId });
+      
+      // Award points and coins
+      updatePoints(pointsReward);
+      updateCoins(coinsReward);
+      
+      // Update achievement progress
+      updateProgress({ achievementId: 'first-challenge' });
+      
       setShowSuccess(true);
     } else {
       setShowError(true);
@@ -63,7 +85,7 @@ const ChallengeDetail = () => {
         <div className="flex items-center gap-3 mb-4">
           <Trophy className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-foreground">
-            Desafio 1 - Sistema de Gestão de Biblioteca
+            Desafio {challengeId} - Sistema de Gestão de Biblioteca
           </h1>
         </div>
 
@@ -93,8 +115,8 @@ const ChallengeDetail = () => {
                   <div className="bg-primary/5 p-3 rounded-md">
                     <p className="text-xs font-medium text-primary mb-2">Recompensas:</p>
                     <div className="flex gap-2 text-sm">
-                      <span className="bg-primary/10 text-primary px-2 py-1 rounded">+150 pts</span>
-                      <span className="bg-amber-500/10 text-amber-600 px-2 py-1 rounded">+75 moedas</span>
+                      <span className="bg-primary/10 text-primary px-2 py-1 rounded">+{pointsReward} pts</span>
+                      <span className="bg-amber-500/10 text-amber-600 px-2 py-1 rounded">+{coinsReward} moedas</span>
                     </div>
                   </div>
                 </div>
@@ -255,9 +277,9 @@ const ChallengeDetail = () => {
         <ExerciseSuccessDialog
           open={showSuccess}
           onOpenChange={setShowSuccess}
-          attempts={attempts}
-          points={150}
-          coins={75}
+          attempts={attempts + 1}
+          points={pointsReward}
+          coins={coinsReward}
           resultTable={{
             columns: ["Título", "Usuário", "Data Empréstimo", "Dias de Atraso"],
             rows: [
@@ -271,7 +293,7 @@ const ChallengeDetail = () => {
           open={showError}
           onOpenChange={setShowError}
           errorMessage="A consulta SQL não retornou o resultado esperado. Verifique se você está usando JOIN para relacionar as tabelas corretamente e WHERE para filtrar empréstimos não devolvidos."
-          attempts={attempts}
+          attempts={attempts + 1}
           hint="Lembre-se: você precisa relacionar as três tabelas (livros, usuarios e emprestimos) e filtrar apenas os registros onde devolvido = false."
         />
       </div>
