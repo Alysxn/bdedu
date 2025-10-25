@@ -14,7 +14,363 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      achievements: {
+        Row: {
+          achievement_type: string
+          created_at: string | null
+          description: string
+          icon: string
+          id: string
+          reward_coins: number | null
+          reward_points: number | null
+          target: number
+          title: string
+        }
+        Insert: {
+          achievement_type: string
+          created_at?: string | null
+          description: string
+          icon: string
+          id: string
+          reward_coins?: number | null
+          reward_points?: number | null
+          target: number
+          title: string
+        }
+        Update: {
+          achievement_type?: string
+          created_at?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          reward_coins?: number | null
+          reward_points?: number | null
+          target?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      aulas: {
+        Row: {
+          created_at: string | null
+          description: string
+          duration: string
+          id: number
+          title: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          duration: string
+          id?: number
+          title: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          duration?: string
+          id?: number
+          title?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
+      desafios: {
+        Row: {
+          aula_id: number | null
+          coins: number | null
+          created_at: string | null
+          description: string
+          hint: string | null
+          id: number
+          points: number | null
+          scenario: string
+          title: string
+          validation_rules: Json
+        }
+        Insert: {
+          aula_id?: number | null
+          coins?: number | null
+          created_at?: string | null
+          description: string
+          hint?: string | null
+          id?: number
+          points?: number | null
+          scenario: string
+          title: string
+          validation_rules: Json
+        }
+        Update: {
+          aula_id?: number | null
+          coins?: number | null
+          created_at?: string | null
+          description?: string
+          hint?: string | null
+          id?: number
+          points?: number | null
+          scenario?: string
+          title?: string
+          validation_rules?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "desafios_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "aulas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercicios: {
+        Row: {
+          aula_id: number | null
+          created_at: string | null
+          description: string
+          hint: string | null
+          id: number
+          title: string
+          validation_rules: Json
+        }
+        Insert: {
+          aula_id?: number | null
+          created_at?: string | null
+          description: string
+          hint?: string | null
+          id?: number
+          title: string
+          validation_rules: Json
+        }
+        Update: {
+          aula_id?: number | null
+          created_at?: string | null
+          description?: string
+          hint?: string | null
+          id?: number
+          title?: string
+          validation_rules?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercicios_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "aulas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      materiais: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          id: number
+          pdf_url: string
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description: string
+          id?: number
+          pdf_url: string
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          id?: number
+          pdf_url?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_icon: string | null
+          coins: number | null
+          created_at: string | null
+          display_name: string | null
+          email: string
+          id: string
+          points: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_icon?: string | null
+          coins?: number | null
+          created_at?: string | null
+          display_name?: string | null
+          email: string
+          id: string
+          points?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_icon?: string | null
+          coins?: number | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string
+          id?: string
+          points?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      store_items: {
+        Row: {
+          created_at: string | null
+          description: string
+          icon: string
+          id: string
+          name: string
+          price: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          icon: string
+          id: string
+          name: string
+          price: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          price?: number
+        }
+        Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string | null
+          claimed: boolean | null
+          claimed_at: string | null
+          created_at: string | null
+          current_progress: number | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          achievement_id?: string | null
+          claimed?: boolean | null
+          claimed_at?: string | null
+          created_at?: string | null
+          current_progress?: number | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          achievement_id?: string | null
+          claimed?: boolean | null
+          claimed_at?: string | null
+          created_at?: string | null
+          current_progress?: number | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_progress: {
+        Row: {
+          attempts: number | null
+          completed: boolean | null
+          completed_at: string | null
+          content_id: number
+          content_type: string
+          created_at: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          completed?: boolean | null
+          completed_at?: string | null
+          content_id: number
+          content_type: string
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          completed?: boolean | null
+          completed_at?: string | null
+          content_id?: number
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_purchases: {
+        Row: {
+          id: string
+          item_id: string | null
+          purchased_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          item_id?: string | null
+          purchased_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          item_id?: string | null
+          purchased_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_purchases_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "store_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
