@@ -11,6 +11,8 @@ import { sql } from "@codemirror/lang-sql";
 import { useProgress } from "@/hooks/useProgress";
 import { useProfile } from "@/hooks/useProfile";
 import { useAchievements } from "@/hooks/useAchievements";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const sqlKeywords = [
   "USE", "CREATE", "TABLE", "SELECT", "FROM", "WHERE", 
@@ -27,32 +29,58 @@ const ExerciseDetail = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   
-  const { markComplete, incrementAttempts, getAttempts } = useProgress();
+  const { markComplete, incrementAttempts, getAttempts, isCompleted } = useProgress();
   const { updatePoints, updateCoins } = useProfile();
   const { updateProgress } = useAchievements();
   
   const exerciseId = parseInt(id || "1");
   const attempts = getAttempts('exercicio', exerciseId);
-  const pointsReward = 50;
-  const coinsReward = 50;
+  const alreadyCompleted = isCompleted('exercicio', exerciseId);
+
+  // Fetch exercise details from backend
+  const { data: exercise, isLoading } = useQuery({
+    queryKey: ['exercicio', exerciseId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('exercicios')
+        .select('*')
+        .eq('id', exerciseId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const pointsReward = exercise?.points || 50;
+  const coinsReward = exercise?.coins || 25;
 
   const handleExecute = () => {
+    if (!exercise) return;
+
     // Increment attempts
     incrementAttempts({ contentType: 'exercicio', contentId: exerciseId });
 
-    // Simple validation for demo - check if code contains CREATE TABLE
+    // Validate using keywords from backend
     const codeUpper = code.toUpperCase();
-    if (codeUpper.includes("CREATE TABLE") && codeUpper.includes("LIVROS")) {
+    const validationRules = exercise.validation_rules as { keywords: string[] };
+    const allKeywordsPresent = validationRules.keywords.every(keyword =>
+      codeUpper.includes(keyword.toUpperCase())
+    );
+
+    if (allKeywordsPresent) {
       // Mark as complete
       markComplete({ contentType: 'exercicio', contentId: exerciseId });
       
-      // Award points and coins
-      updatePoints(pointsReward);
-      updateCoins(coinsReward);
-      
-      // Update achievement progress
-      updateProgress({ achievementId: 'five-exercises' });
-      updateProgress({ achievementId: 'speed-runner' });
+      // Award points and coins ONLY if not already completed
+      if (!alreadyCompleted) {
+        updatePoints(pointsReward);
+        updateCoins(coinsReward);
+        
+        // Update achievement progress
+        updateProgress({ achievementId: 'five-exercises' });
+        updateProgress({ achievementId: 'speed-runner' });
+      }
       
       setShowSuccess(true);
     } else {
@@ -63,6 +91,19 @@ const ExerciseDetail = () => {
   const insertKeyword = (keyword: string) => {
     setCode(code + " " + keyword);
   };
+
+  if (isLoading || !exercise) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Carregando exercício...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -77,29 +118,22 @@ const ExerciseDetail = () => {
         </Button>
 
         <div>
-          <h1 className="text-4xl font-bold mb-8 text-foreground">Exercício {exerciseId} - Crie um banco de dados</h1>
+          <h1 className="text-4xl font-bold mb-8 text-foreground">Exercício {exerciseId} - {exercise.title}</h1>
+          
+          {alreadyCompleted && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                ℹ️ Você já completou este exercício. Refazer não concederá pontos ou moedas adicionais.
+              </p>
+            </div>
+          )}
 
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Enunciado do Problema</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-muted-foreground">
-                Você foi contratado para desenvolver o sistema de gerenciamento de uma biblioteca fictícia. O primeiro passo é a criação das tabelas
-                principais do banco de dados.
-              </p>
-
-              <div>
-                <p className="mb-2">Crie um banco de dados chamado BibliotecaDB e, dentro dele, crie as seguintes tabelas:</p>
-                <div className="ml-6 space-y-2 text-sm">
-                  <div>
-                    <p className="font-medium">1. Livros</p>
-                    <p className="text-muted-foreground ml-4">- id_livro (inteiro, chave primária)</p>
-                    <p className="text-muted-foreground ml-4">- titulo (texto, até 150 caracteres)</p>
-                    <p className="text-muted-foreground ml-4">- ano_publicacao (inteiro)</p>
-                  </div>
-                </div>
-              </div>
+              <p className="text-muted-foreground">{exercise.description}</p>
             </CardContent>
           </Card>
 
@@ -171,9 +205,9 @@ const ExerciseDetail = () => {
       <ExerciseErrorDialog
         open={showError}
         onOpenChange={setShowError}
-        errorMessage="Erro SQL detectado: Verifique a sintaxe do comando CREATE TABLE."
+        errorMessage="Erro SQL detectado: Verifique a sintaxe do seu código."
         attempts={attempts + 1}
-        hint="Lembre-se de usar o comando CREATE DATABASE antes de criar a tabela com CREATE TABLE."
+        hint={exercise.hint || undefined}
       />
     </AppLayout>
   );

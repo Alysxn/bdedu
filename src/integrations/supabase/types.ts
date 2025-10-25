@@ -127,28 +127,34 @@ export type Database = {
       exercicios: {
         Row: {
           aula_id: number | null
+          coins: number | null
           created_at: string | null
           description: string
           hint: string | null
           id: number
+          points: number | null
           title: string
           validation_rules: Json
         }
         Insert: {
           aula_id?: number | null
+          coins?: number | null
           created_at?: string | null
           description: string
           hint?: string | null
           id?: number
+          points?: number | null
           title: string
           validation_rules: Json
         }
         Update: {
           aula_id?: number | null
+          coins?: number | null
           created_at?: string | null
           description?: string
           hint?: string | null
           id?: number
+          points?: number | null
           title?: string
           validation_rules?: Json
         }
@@ -164,6 +170,7 @@ export type Database = {
       }
       materiais: {
         Row: {
+          aula_id: number | null
           category: string
           created_at: string | null
           description: string
@@ -172,6 +179,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          aula_id?: number | null
           category: string
           created_at?: string | null
           description: string
@@ -180,6 +188,7 @@ export type Database = {
           title: string
         }
         Update: {
+          aula_id?: number | null
           category?: string
           created_at?: string | null
           description?: string
@@ -187,7 +196,15 @@ export type Database = {
           pdf_url?: string
           title?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "materiais_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "aulas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -429,6 +446,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_completed_content: {
+        Args: { _content_id: number; _content_type: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

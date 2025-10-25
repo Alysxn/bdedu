@@ -11,6 +11,8 @@ import { ExerciseErrorDialog } from "@/components/ExerciseErrorDialog";
 import { useProgress } from "@/hooks/useProgress";
 import { useProfile } from "@/hooks/useProfile";
 import { useAchievements } from "@/hooks/useAchievements";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const sqlKeywords = [
   "USE", "CREATE", "TABLE", "SELECT", "FROM", "WHERE", 
@@ -29,40 +31,61 @@ const ChallengeDetail = () => {
   const [showContext, setShowContext] = useState(true);
   const [showSyntax, setShowSyntax] = useState(true);
 
-  const { markComplete, incrementAttempts, getAttempts } = useProgress();
+  const { markComplete, incrementAttempts, getAttempts, isCompleted } = useProgress();
   const { updatePoints, updateCoins } = useProfile();
   const { updateProgress } = useAchievements();
   
   const challengeId = parseInt(id || "1");
   const attempts = getAttempts('desafio', challengeId);
-  const pointsReward = 150;
-  const coinsReward = 75;
+  const alreadyCompleted = isCompleted('desafio', challengeId);
+
+  // Fetch challenge details from backend
+  const { data: challenge, isLoading } = useQuery({
+    queryKey: ['desafio', challengeId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('desafios')
+        .select('*')
+        .eq('id', challengeId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const pointsReward = challenge?.points || 150;
+  const coinsReward = challenge?.coins || 75;
 
   const insertKeyword = (keyword: string) => {
     setCode(code + " " + keyword);
   };
 
   const handleExecute = () => {
+    if (!challenge) return;
+
     // Increment attempts
     incrementAttempts({ contentType: 'desafio', contentId: challengeId });
 
-    // Simulated validation - checks for key SQL elements
+    // Validate using keywords from backend
     const codeUpper = code.toUpperCase();
-    const hasSelect = codeUpper.includes("SELECT");
-    const hasFrom = codeUpper.includes("FROM");
-    const hasWhere = codeUpper.includes("WHERE");
-    const hasJoin = codeUpper.includes("JOIN");
+    const validationRules = challenge.validation_rules as { keywords: string[] };
+    const allKeywordsPresent = validationRules.keywords.every(keyword =>
+      codeUpper.includes(keyword.toUpperCase())
+    );
 
-    if (hasSelect && hasFrom && hasJoin && hasWhere) {
+    if (allKeywordsPresent) {
       // Mark as complete
       markComplete({ contentType: 'desafio', contentId: challengeId });
       
-      // Award points and coins
-      updatePoints(pointsReward);
-      updateCoins(coinsReward);
-      
-      // Update achievement progress
-      updateProgress({ achievementId: 'first-challenge' });
+      // Award points and coins ONLY if not already completed
+      if (!alreadyCompleted) {
+        updatePoints(pointsReward);
+        updateCoins(coinsReward);
+        
+        // Update achievement progress
+        updateProgress({ achievementId: 'first-challenge' });
+      }
       
       setShowSuccess(true);
     } else {
@@ -99,16 +122,14 @@ const ChallengeDetail = () => {
                   <h3 className="text-lg font-semibold">Contexto do Desafio</h3>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Uma biblioteca municipal está modernizando seu sistema de controle. A diretora precisa de um relatório
-                  detalhado sobre todos os livros emprestados no último mês que ainda não foram devolvidos.
+                  {challenge.scenario}
                 </p>
                 
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-semibold text-sm mb-2 text-foreground">Objetivo:</h4>
                     <p className="text-sm text-muted-foreground">
-                      Crie uma consulta SQL que retorne o título do livro, nome do usuário que pegou emprestado,
-                      data do empréstimo e quantos dias de atraso (se houver).
+                      {challenge.description}
                     </p>
                   </div>
 
@@ -292,9 +313,9 @@ const ChallengeDetail = () => {
         <ExerciseErrorDialog
           open={showError}
           onOpenChange={setShowError}
-          errorMessage="A consulta SQL não retornou o resultado esperado. Verifique se você está usando JOIN para relacionar as tabelas corretamente e WHERE para filtrar empréstimos não devolvidos."
+          errorMessage="A consulta SQL não retornou o resultado esperado. Verifique sua sintaxe."
           attempts={attempts + 1}
-          hint="Lembre-se: você precisa relacionar as três tabelas (livros, usuarios e emprestimos) e filtrar apenas os registros onde devolvido = false."
+          hint={challenge.hint || undefined}
         />
       </div>
     </AppLayout>
