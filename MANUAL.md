@@ -2,190 +2,247 @@
 
 ## Introdução
 
-Este manual contém instruções detalhadas sobre como adicionar e atualizar conteúdos na plataforma de ensino de SQL. Todas as alterações são feitas diretamente no código-fonte do projeto, sem necessidade de banco de dados externo.
+Este manual contém instruções detalhadas sobre como adicionar e atualizar conteúdos na plataforma de ensino de SQL. 
+
+**IMPORTANTE:** A plataforma agora utiliza um backend completo com banco de dados real (Lovable Cloud). Todas as alterações de conteúdo são feitas através de consultas SQL no banco de dados, não mais em arquivos de código-fonte. O progresso dos usuários, pontos, moedas e conquistas são todos armazenados e gerenciados pelo backend.
+
+## Estrutura do Backend
+
+### Banco de Dados
+
+O backend utiliza PostgreSQL com as seguintes tabelas principais:
+
+- **profiles** - Perfis dos usuários (pontos, moedas, ícone)
+- **aulas** - Catálogo de aulas disponíveis
+- **exercicios** - Catálogo de exercícios
+- **desafios** - Catálogo de desafios
+- **materiais** - Catálogo de materiais (PDFs)
+- **user_progress** - Progresso individual de cada usuário
+- **achievements** - Conquistas disponíveis
+- **user_achievements** - Conquistas dos usuários
+- **store_items** - Itens disponíveis na loja
+- **user_purchases** - Compras realizadas pelos usuários
+
+### Autenticação
+
+A autenticação é gerenciada pelo backend com:
+- Registro de usuários através de `/register`
+- Login através de `/login`
+- Senhas criptografadas automaticamente
+- Sessões seguras gerenciadas pelo backend
+
+### Acessando o Backend
+
+Para acessar o backend e fazer consultas SQL, você precisa usar a interface do Lovable Cloud. Todas as operações de banco de dados devem ser feitas através de consultas SQL executadas no backend.
+
+**Como Executar Consultas SQL:**
+
+1. Acesse a aba "Cloud" no painel do Lovable
+2. Clique em "Database" para acessar o gerenciador de banco de dados
+3. Execute suas consultas SQL diretamente no editor
+4. As alterações serão aplicadas imediatamente ao banco de dados
+
+**Consultas Úteis:**
+
+```sql
+-- Ver todas as tabelas
+SELECT table_name FROM information_schema.tables 
+WHERE table_schema = 'public' 
+ORDER BY table_name;
+
+-- Ver estrutura de uma tabela
+SELECT column_name, data_type, is_nullable 
+FROM information_schema.columns 
+WHERE table_name = 'exercicios' 
+ORDER BY ordinal_position;
+
+-- Contar registros
+SELECT COUNT(*) FROM public.aulas;
+SELECT COUNT(*) FROM public.exercicios;
+SELECT COUNT(*) FROM public.desafios;
+```
+
+### Backup e Restauração
+
+**IMPORTANTE:** Antes de fazer alterações significativas no banco de dados, sempre faça um backup:
+
+```sql
+-- Backup de uma tabela (copie o resultado)
+SELECT * FROM public.exercicios;
+
+-- Para restaurar, use INSERT statements com os dados salvos
+```
 
 ---
 
 ## 1. Como Adicionar e Atualizar Exercícios
 
-### Localização
-Arquivo: `src/pages/Exercises.tsx`
+### Localização no Banco de Dados
+Tabela: `public.exercicios`
 
 ### Estrutura de Dados
 Cada exercício possui a seguinte estrutura:
 
-```javascript
-{
-  id: 1,                                    // ID único do exercício
-  class: "Aula 1: Introdução a SQL",       // Aula associada
-  title: "Exercício 1 - Crie um banco de dados",  // Título do exercício
-  description: "Descrição completa...",     // Descrição do problema
-  completed: false,                         // Status inicial (sempre false)
-}
+```sql
+CREATE TABLE public.exercicios (
+  id SERIAL PRIMARY KEY,
+  aula_id INTEGER REFERENCES public.aulas(id),
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  validation_rules JSONB NOT NULL,
+  hint TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
 ### Passo a Passo para Adicionar um Exercício
 
-1. Abra o arquivo `src/pages/Exercises.tsx`
-2. Localize o array `exercises` (linhas 7-22)
-3. Adicione um novo objeto ao final do array:
+Execute a seguinte consulta SQL no backend para adicionar um novo exercício:
 
-```javascript
-const exercises = [
-  // ... exercícios existentes
-  {
-    id: 3,  // Incremente o ID
-    class: "Aula 2: Consultas Avançadas",
-    title: "Exercício 3 - Uso de JOINs",
-    description: "Crie consultas SQL utilizando INNER JOIN para relacionar duas tabelas...",
-    completed: false,
-  },
-];
+```sql
+INSERT INTO public.exercicios (aula_id, title, description, validation_rules, hint)
+VALUES (
+  1,  -- ID da aula associada
+  'Exercício 3 - Uso de JOINs',
+  'Crie consultas SQL utilizando INNER JOIN para relacionar duas tabelas e buscar informações combinadas.',
+  '{"keywords": ["INNER", "JOIN", "ON"]}',  -- Palavras-chave que devem aparecer na solução
+  'Use INNER JOIN para conectar duas tabelas e especifique a condição de junção com ON.'
+);
 ```
 
-### Criar a Tela de Detalhes do Exercício
+### Validation Rules (Regras de Validação)
 
-Para cada exercício, é necessário criar ou atualizar o arquivo `src/pages/ExerciseDetail.tsx`:
+O campo `validation_rules` é um JSONB que define como validar a resposta do aluno:
 
-1. Localize a lógica de validação da resposta na função `handleExecute`
-2. Adicione a validação específica para o seu exercício:
-
-```javascript
-const handleExecute = () => {
-  const trimmedCode = code.trim().toUpperCase();
-  
-  // Adicione sua validação aqui
-  if (exerciseId === "3") {  // ID do novo exercício
-    if (trimmedCode.includes("INNER JOIN") && trimmedCode.includes("ON")) {
-      setShowSuccess(true);
-    } else {
-      setShowError(true);
-    }
-  }
-  
-  setAttempts(attempts + 1);
-};
+```json
+{
+  "keywords": ["SELECT", "FROM", "WHERE", "GROUP BY"]
+}
 ```
 
-3. Atualize o conteúdo do exercício no JSX:
-   - Modifique o título
-   - Atualize a descrição do problema
-   - Adicione tabelas de exemplo se necessário
-   - Configure a dica (hint) apropriada
+O sistema verifica se todas as palavras-chave estão presentes no código SQL submetido pelo aluno (não diferencia maiúsculas/minúsculas).
+
+### Visualizando Exercícios Existentes
+
+```sql
+SELECT * FROM public.exercicios ORDER BY id;
+```
+
+### Atualizando um Exercício
+
+```sql
+UPDATE public.exercicios
+SET 
+  title = 'Novo Título',
+  description = 'Nova descrição do exercício',
+  validation_rules = '{"keywords": ["SELECT", "JOIN", "WHERE"]}',
+  hint = 'Nova dica'
+WHERE id = 3;
+```
 
 ---
 
 ## 2. Como Adicionar e Atualizar Desafios
 
-### Localização
-- Lista de desafios: `src/pages/Challenges.tsx`
-- Detalhe do desafio: `src/pages/ChallengeDetail.tsx`
+### Localização no Banco de Dados
+Tabela: `public.desafios`
 
 ### Estrutura de Dados
 Cada desafio possui:
 
-```javascript
-{
-  id: 1,
-  class: "Aula 1",
-  title: "Desafio 1 - Gestão de Biblioteca",
-  description: "Descrição resumida do desafio...",
-  completed: false,
-  points: 150,      // Pontos ganhos ao completar
-  coins: 75,        // Moedas ganhas ao completar
-}
+```sql
+CREATE TABLE public.desafios (
+  id SERIAL PRIMARY KEY,
+  aula_id INTEGER REFERENCES public.aulas(id),
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  scenario TEXT NOT NULL,
+  validation_rules JSONB NOT NULL,
+  points INTEGER DEFAULT 150,
+  coins INTEGER DEFAULT 75,
+  hint TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
 ### Passo a Passo para Adicionar um Desafio
 
-1. Abra `src/pages/Challenges.tsx`
-2. Localize o array `challenges`
-3. Adicione um novo desafio:
+Execute a consulta SQL no backend:
 
-```javascript
-const challenges = [
-  // ... desafios existentes
-  {
-    id: 2,
-    class: "Aula 2",
-    title: "Desafio 2 - Sistema de E-commerce",
-    description: "Identifique os produtos mais vendidos no último trimestre usando agregações e JOINs complexos.",
-    completed: false,
-    points: 200,
-    coins: 100,
-  },
-];
+```sql
+INSERT INTO public.desafios (
+  aula_id, 
+  title, 
+  description, 
+  scenario, 
+  validation_rules, 
+  points, 
+  coins, 
+  hint
+)
+VALUES (
+  2,  -- ID da aula
+  'Desafio 2 - Sistema de E-commerce',
+  'Identifique os produtos mais vendidos no último trimestre.',
+  'Você é o analista de dados de um e-commerce e precisa gerar um relatório dos produtos mais vendidos. O banco contém tabelas de produtos, vendas e clientes.',
+  '{"keywords": ["SELECT", "FROM", "GROUP BY", "ORDER BY", "LIMIT"]}',
+  200,  -- pontos
+  100,  -- moedas
+  'Use GROUP BY para agrupar por produto, ORDER BY para ordenar, e LIMIT para pegar os top resultados.'
+);
 ```
 
-### Criar o Conteúdo do Desafio
+### Visualizando Desafios
 
-No arquivo `src/pages/ChallengeDetail.tsx`:
-
-1. Adicione um novo cenário PBL (Problem-Based Learning) no JSX
-2. Inclua as tabelas do banco de dados com estrutura e dados de exemplo
-3. Configure a validação da solução na função `handleExecute`:
-
-```javascript
-const handleExecute = () => {
-  const trimmedCode = code.trim().toUpperCase();
-  
-  if (challengeId === "2") {  // ID do novo desafio
-    if (trimmedCode.includes("GROUP BY") && 
-        trimmedCode.includes("ORDER BY") && 
-        trimmedCode.includes("LIMIT")) {
-      setShowSuccess(true);
-    } else {
-      setAttempts(attempts + 1);
-      setShowError(true);
-    }
-  }
-};
+```sql
+SELECT * FROM public.desafios ORDER BY id;
 ```
 
-4. Atualize o contexto do problema:
-   - Cenário realista e envolvente
-   - Estrutura das tabelas (CREATE TABLE ou descrição)
-   - Dados de exemplo (INSERT ou tabela visual)
-   - Objetivo claro do que deve ser resolvido
+### Atualizando um Desafio
+
+```sql
+UPDATE public.desafios
+SET 
+  title = 'Novo Título do Desafio',
+  description = 'Nova descrição',
+  scenario = 'Novo cenário PBL',
+  points = 250,
+  coins = 125
+WHERE id = 2;
+```
 
 ---
 
 ## 3. Como Adicionar e Atualizar Aulas
 
-### Localização
-Arquivo: `src/pages/Classes.tsx` e `src/pages/ClassDetail.tsx`
+### Localização no Banco de Dados
+Tabela: `public.aulas`
 
 ### Estrutura de Dados
 
-```javascript
-{
-  id: 1,
-  title: "Aula 1: Introdução ao SQL",
-  description: "Aprenda os fundamentos do SQL...",
-  duration: "45 min",
-  videoUrl: "https://www.youtube.com/embed/VIDEO_ID",  // ID do vídeo YouTube
-  completed: false,
-}
+```sql
+CREATE TABLE public.aulas (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  duration TEXT NOT NULL,
+  video_url TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
 ### Passo a Passo para Adicionar uma Aula
 
-1. Abra `src/pages/Classes.tsx`
-2. Localize o array de aulas
-3. Adicione uma nova aula:
+Execute a consulta SQL:
 
-```javascript
-const classes = [
-  // ... aulas existentes
-  {
-    id: 3,
-    title: "Aula 3: Funções de Agregação",
-    description: "Aprenda a usar COUNT, SUM, AVG, MIN, MAX e GROUP BY para análise de dados.",
-    duration: "50 min",
-    videoUrl: "https://www.youtube.com/embed/SEU_VIDEO_ID_AQUI",
-    completed: false,
-  },
-];
+```sql
+INSERT INTO public.aulas (title, description, duration, video_url)
+VALUES (
+  'Aula 3: Funções de Agregação',
+  'Aprenda a usar COUNT, SUM, AVG, MIN, MAX e GROUP BY para análise de dados e gerar relatórios estatísticos.',
+  '50 min',
+  'https://www.youtube.com/embed/SEU_VIDEO_ID_AQUI'
+);
 ```
 
 ### Como Obter o ID do Vídeo do YouTube
@@ -195,47 +252,34 @@ const classes = [
 3. O ID do vídeo é a parte após `v=`, neste caso: `ABC123XYZ`
 4. Use no formato: `https://www.youtube.com/embed/ABC123XYZ`
 
-### Vincular Exercícios e Desafios à Aula
+### Visualizando Aulas
 
-No arquivo `src/pages/ClassDetail.tsx`, vincule exercícios e desafios à nova aula:
+```sql
+SELECT * FROM public.aulas ORDER BY id;
+```
 
-1. Localize as abas "Exercícios" e "Desafios"
-2. Adicione cards para o novo conteúdo:
+### Atualizando uma Aula
 
-```javascript
-// Na aba de Exercícios
-<Card>
-  <CardHeader>
-    <CardTitle>Exercício 3 - Agregações Básicas</CardTitle>
-  </CardHeader>
-  <CardContent>
-    <p className="text-sm text-muted-foreground mb-4">
-      Pratique o uso de funções de agregação...
-    </p>
-    <Button onClick={() => navigate("/exercicios/3")}>
-      Acessar Exercício
-    </Button>
-  </CardContent>
-</Card>
+```sql
+UPDATE public.aulas
+SET 
+  title = 'Novo Título',
+  description = 'Nova descrição',
+  duration = '60 min',
+  video_url = 'https://www.youtube.com/embed/NOVO_ID'
+WHERE id = 3;
+```
 
-// Na aba de Desafios
-<Card>
-  <CardHeader>
-    <CardTitle>Desafio 2 - Análise de Vendas</CardTitle>
-  </CardHeader>
-  <CardContent>
-    <div className="flex gap-2 mb-3">
-      <Badge variant="secondary">200 pts</Badge>
-      <Badge variant="outline">100 moedas</Badge>
-    </div>
-    <p className="text-sm text-muted-foreground mb-4">
-      Use agregações para analisar dados de vendas...
-    </p>
-    <Button onClick={() => navigate("/desafios/2")}>
-      Acessar Desafio
-    </Button>
-  </CardContent>
-</Card>
+### Vinculando Exercícios e Desafios
+
+Após criar uma aula, vincule exercícios e desafios através do campo `aula_id`:
+
+```sql
+-- Vincular exercício existente à aula 3
+UPDATE public.exercicios SET aula_id = 3 WHERE id = 5;
+
+-- Vincular desafio existente à aula 3
+UPDATE public.desafios SET aula_id = 3 WHERE id = 2;
 ```
 
 ---

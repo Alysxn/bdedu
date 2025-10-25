@@ -2,21 +2,32 @@
 
 ## Usuário Administrador Padrão
 
-Para acessar a plataforma com privilégios de administrador, utilize as seguintes credenciais:
+Para acessar a plataforma com privilégios de administrador, você primeiro precisa criar a conta através do sistema de registro.
 
 **Email:** admin@sqlmaster.com  
-**Senha:** admin123
+**Senha:** admin123  
+**Nome:** Administrador
 
 ---
 
-## Instruções para Primeiro Acesso
+## Instruções para Criar a Conta Admin
 
-1. Acesse a página de login em `/login`
-2. Digite o email: `admin@sqlmaster.com`
-3. Digite a senha: `admin123`
-4. Clique em "Entrar"
+Como a plataforma agora usa autenticação real com banco de dados, você precisa criar o usuário admin pela primeira vez:
 
-Após o login, você terá acesso completo a todas as funcionalidades da plataforma.
+1. Acesse a página de registro em `/register`
+2. Preencha os campos:
+   - **Nome completo:** Administrador
+   - **E-mail:** admin@sqlmaster.com
+   - **Senha:** admin123
+   - **Confirmar senha:** admin123
+3. Clique em "Criar conta"
+4. Você será automaticamente redirecionado para a plataforma
+
+---
+
+## Login Subsequente
+
+Após criar a conta pela primeira vez, use as credenciais acima para fazer login em `/login`.
 
 ---
 
@@ -33,20 +44,25 @@ Em produção, você deve:
 
 ## Criando Usuários Adicionais
 
-Para criar novos usuários administradores ou estudantes:
-
-1. Acesse a página de registro em `/register`
-2. Preencha todos os campos obrigatórios
-3. O novo usuário será criado automaticamente no banco de dados
-4. Todos os usuários começam com 0 pontos e 0 moedas
+Todos os novos usuários devem se registrar através da página `/register`. Os dados são armazenados de forma segura no banco de dados com:
+- Autenticação gerenciada pelo backend
+- Senhas criptografadas automaticamente
+- Perfis individuais com progresso isolado
+- Todos os usuários começam com 0 pontos e 0 moedas
 
 ---
 
-## Dados do Administrador
+## Dados do Usuário
 
-- **Nome de exibição:** Administrador
-- **Pontos iniciais:** 0
-- **Moedas iniciais:** 0
-- **Ícone do perfil:** User (padrão)
+Cada usuário tem seu próprio registro no banco de dados contendo:
+- **ID único (UUID)**
+- **Email** (usado para login)
+- **Nome de exibição**
+- **Pontos acumulados**
+- **Moedas acumuladas**
+- **Ícone do perfil**
+- **Progresso individual** (aulas, exercícios, desafios, materiais completados)
+- **Conquistas desbloqueadas**
+- **Itens comprados na loja**
 
-O progresso do administrador (aulas assistidas, exercícios completados, etc.) é rastreado individualmente, assim como qualquer outro usuário.
+Todo o progresso é rastreado individualmente por usuário e persiste entre sessões.
