@@ -92,6 +92,12 @@ const ExerciseDetail = () => {
     setCode(code + " " + keyword);
   };
 
+  const insertSkeleton = () => {
+    if (exercise?.skeleton) {
+      setCode(exercise.skeleton);
+    }
+  };
+
   if (isLoading || !exercise) {
     return (
       <AppLayout>
@@ -140,13 +146,24 @@ const ExerciseDetail = () => {
           <Card className="mb-6">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>SQL Editor</CardTitle>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowSyntax(!showSyntax)}
-              >
-                {showSyntax ? "Ocultar Sintaxe" : "Mostrar Sintaxe"}
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowSyntax(!showSyntax)}
+                >
+                  {showSyntax ? "Ocultar Sintaxe" : "Mostrar Sintaxe"}
+                </Button>
+                {exercise?.skeleton && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={insertSkeleton}
+                  >
+                    Exibir Exemplo
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <CodeMirror
