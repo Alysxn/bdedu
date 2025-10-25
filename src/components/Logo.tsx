@@ -1,12 +1,13 @@
-import { Database } from "lucide-react";
+import logoImage from "@/assets/logo.png";
 
 export const Logo = () => {
   return (
-    <div className="flex items-center gap-2">
-      <div className="relative">
-        <Database className="h-8 w-8 text-primary" strokeWidth={2.5} />
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-sm transform rotate-12" />
-      </div>
+    <div className="flex items-center gap-3">
+      <img 
+        src={logoImage} 
+        alt="BD.Edu Logo" 
+        className="h-10 w-10 object-contain"
+      />
       <span className="text-xl font-bold text-foreground">BD.Edu</span>
     </div>
   );

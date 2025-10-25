@@ -2,6 +2,10 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { GraduationCap, Target, Trophy } from "lucide-react";
+import heroImage from "@/assets/hero.jpg";
+import curriculoImage from "@/assets/curriculo.png";
+import projetosImage from "@/assets/projetos.png";
+import aulasImage from "@/assets/aulas.png";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -38,10 +42,12 @@ const Landing = () => {
               Começar agora
             </Button>
           </div>
-          <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-8 aspect-square flex items-center justify-center">
-            <div className="text-center text-muted-foreground text-6xl">
-              🗄️💻
-            </div>
+          <div className="rounded-2xl overflow-hidden">
+            <img 
+              src={heroImage} 
+              alt="Database Learning Platform" 
+              className="w-full h-auto object-cover"
+            />
           </div>
         </div>
       </section>
@@ -89,8 +95,12 @@ const Landing = () => {
 
         <div className="grid md:grid-cols-3 gap-8">
           <div className="text-center">
-            <div className="bg-primary/10 rounded-2xl p-8 mb-6 aspect-square flex items-center justify-center">
-              <div className="text-6xl">📚</div>
+            <div className="bg-background rounded-2xl p-6 mb-6 border border-border overflow-hidden">
+              <img 
+                src={curriculoImage} 
+                alt="Currículo Abrangente" 
+                className="w-full h-auto object-contain"
+              />
             </div>
             <h3 className="text-xl font-bold mb-3 text-foreground">Currículo Abrangente</h3>
             <p className="text-muted-foreground">
@@ -98,8 +108,12 @@ const Landing = () => {
             </p>
           </div>
           <div className="text-center">
-            <div className="bg-primary/10 rounded-2xl p-8 mb-6 aspect-square flex items-center justify-center">
-              <div className="text-6xl">💼</div>
+            <div className="bg-background rounded-2xl p-6 mb-6 border border-border overflow-hidden">
+              <img 
+                src={projetosImage} 
+                alt="Projetos Práticos" 
+                className="w-full h-auto object-contain"
+              />
             </div>
             <h3 className="text-xl font-bold mb-3 text-foreground">Projetos Práticos</h3>
             <p className="text-muted-foreground">
@@ -107,8 +121,12 @@ const Landing = () => {
             </p>
           </div>
           <div className="text-center">
-            <div className="bg-primary/10 rounded-2xl p-8 mb-6 aspect-square flex items-center justify-center">
-              <div className="text-6xl">🎓</div>
+            <div className="bg-background rounded-2xl p-6 mb-6 border border-border overflow-hidden">
+              <img 
+                src={aulasImage} 
+                alt="Aulas Gratuitas" 
+                className="w-full h-auto object-contain"
+              />
             </div>
             <h3 className="text-xl font-bold mb-3 text-foreground">Aulas Gratuitas</h3>
             <p className="text-muted-foreground">
