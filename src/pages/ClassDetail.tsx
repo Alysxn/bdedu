@@ -120,17 +120,14 @@ const ClassDetail = () => {
           <h1 className="text-4xl font-bold mb-6 text-foreground text-center">{lesson.title}</h1>
           
           <div className="w-full max-w-4xl mx-auto mb-6">
-            <div className="relative bg-muted rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%' }}>
-              <div className="absolute inset-0">
-                <YouTubePlayer
-                  url={videoUrl}
-                  playing={playing}
-                  onPlay={() => setPlaying(true)}
-                  onPause={() => setPlaying(false)}
-                  onProgress={handleProgress}
-                  onDuration={() => {}}
-                />
-              </div>
+            <div className="relative bg-muted rounded-lg overflow-hidden">
+              <YouTubePlayer
+                url={videoUrl}
+                playing={playing}
+                onPlay={() => setPlaying(true)}
+                onPause={() => setPlaying(false)}
+                onProgress={handleProgress}
+              />
             </div>
             <div className="mt-4">
               <div className="bg-muted rounded-full h-2 mb-2">

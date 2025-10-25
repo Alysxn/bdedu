@@ -6,9 +6,9 @@ interface YouTubePlayerProps {
   onPlay: () => void;
   onPause: () => void;
   onProgress: (state: { played: number; playedSeconds: number }) => void;
-  onDuration: (duration: number) => void;
 }
 
+// Cast ReactPlayer to any to avoid type conflicts with HTML video element
 const Player = ReactPlayer as any;
 
 export const YouTubePlayer = ({
@@ -17,20 +17,21 @@ export const YouTubePlayer = ({
   onPlay,
   onPause,
   onProgress,
-  onDuration,
 }: YouTubePlayerProps) => {
   return (
-    <Player
-      url={url}
-      width="100%"
-      height="100%"
-      playing={playing}
-      controls
-      onPlay={onPlay}
-      onPause={onPause}
-      onProgress={onProgress}
-      onDuration={onDuration}
-      progressInterval={1000}
-    />
+    <div style={{ position: 'relative', paddingTop: '56.25%' }}>
+      <Player
+        url={url}
+        width="100%"
+        height="100%"
+        playing={playing}
+        controls={true}
+        onPlay={onPlay}
+        onPause={onPause}
+        onProgress={onProgress}
+        progressInterval={1000}
+        style={{ position: 'absolute', top: 0, left: 0 }}
+      />
+    </div>
   );
 };
