@@ -51,32 +51,29 @@ const Exercises = () => {
               <h2 className="text-xl font-semibold mb-4 text-foreground">{lessonLabel}</h2>
               <div className="space-y-4">
                 {lessonExercises.map((exercise) => (
-                  <Card key={exercise.id} className="relative">
-                    {exercise.completed && (
-                      <div className="absolute top-4 right-4 flex items-center gap-2 bg-success/10 text-success px-3 py-1 rounded-full">
-                        <CheckCircle2 className="h-4 w-4" />
-                        <span className="text-sm font-medium">Concluído</span>
-                      </div>
-                    )}
+                  <Card key={exercise.id}>
                     <CardHeader>
-                      <CardTitle className="text-2xl mb-2 pr-32">{exercise.title}</CardTitle>
-                      {exercise.attempts > 0 && (
-                        <div className="text-sm text-muted-foreground">
-                          Tentativas: {exercise.attempts}
+                      <div className="flex items-start justify-between gap-4">
+                        <CardTitle className="text-2xl">{exercise.title}</CardTitle>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                            +{exercise.points} pts
+                          </span>
+                          <span className="bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                            +{exercise.coins} moedas
+                          </span>
+                          {exercise.completed && (
+                            <div className="flex items-center gap-1 bg-success/10 text-success px-3 py-1 rounded-full">
+                              <CheckCircle2 className="h-4 w-4" />
+                              <span className="text-sm font-medium whitespace-nowrap">Concluído</span>
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </CardHeader>
                     <CardContent>
                       <p className="text-muted-foreground mb-4">{exercise.description}</p>
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <div className="flex gap-2">
-                          <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
-                            +{exercise.points} pts
-                          </span>
-                          <span className="bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full text-sm font-medium">
-                            +{exercise.coins} moedas
-                          </span>
-                        </div>
+                      <div className="flex items-center gap-3">
                         {exercise.completed ? (
                           <Button 
                             variant="outline" 

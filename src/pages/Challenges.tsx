@@ -56,31 +56,24 @@ const Challenges = () => {
                 {lessonChallenges.map((challenge) => (
                   <Card key={challenge.id} className="border-primary/20 shadow-lg">
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-2xl flex items-center gap-2 mb-2">
-                            <Trophy className="h-6 w-6 text-primary" />
-                            {challenge.title}
-                          </CardTitle>
-                          {challenge.attempts > 0 && (
-                            <div className="text-sm text-muted-foreground">
-                              Tentativas: {challenge.attempts}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex gap-3 text-sm font-medium">
-                          {challenge.completed && (
-                            <div className="flex items-center gap-2 text-success mr-4">
-                              <CheckCircle2 className="h-5 w-5" />
-                              <span className="font-medium">Concluído</span>
-                            </div>
-                          )}
-                          <span className="bg-primary/10 text-primary px-3 py-1 rounded-full">
+                      <div className="flex items-start justify-between gap-4">
+                        <CardTitle className="text-2xl flex items-center gap-2">
+                          <Trophy className="h-6 w-6 text-primary" />
+                          {challenge.title}
+                        </CardTitle>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
                             +{challenge.points} pts
                           </span>
-                          <span className="bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full">
+                          <span className="bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
                             +{challenge.coins} moedas
                           </span>
+                          {challenge.completed && (
+                            <div className="flex items-center gap-1 bg-success/10 text-success px-3 py-1 rounded-full">
+                              <CheckCircle2 className="h-4 w-4" />
+                              <span className="text-sm font-medium whitespace-nowrap">Concluído</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardHeader>
