@@ -47,12 +47,37 @@ const ChallengeDetail = () => {
         .from('desafios')
         .select('*')
         .eq('id', challengeId)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
     },
   });
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <p className="text-muted-foreground">Carregando desafio...</p>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Show not found state
+  if (!challenge) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <p className="text-muted-foreground">Desafio não encontrado</p>
+          <Button onClick={() => navigate("/desafios")}>
+            Voltar para Desafios
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
 
   const pointsReward = challenge?.points || 150;
   const coinsReward = challenge?.coins || 75;
