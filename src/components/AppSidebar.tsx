@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { User, BookOpen, GraduationCap, FileText, Trophy, ShoppingCart } from "lucide-react";
+import { User, BookOpen, GraduationCap, FileText, Trophy, ShoppingCart, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
@@ -7,7 +7,7 @@ const menuItems = [
   { title: "Materiais", url: "/materiais", icon: BookOpen },
   { title: "Aulas", url: "/aulas", icon: GraduationCap },
   { title: "Exercícios", url: "/exercicios", icon: FileText },
-  { title: "Desafios", url: "/desafios", icon: Trophy },
+  { title: "Desafios", url: "/desafios", icon: Target },
   { title: "Conquistas", url: "/conquistas", icon: Trophy },
   { title: "Loja", url: "/loja", icon: ShoppingCart },
 ];
