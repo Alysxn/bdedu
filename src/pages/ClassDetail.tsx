@@ -42,6 +42,51 @@ const ClassDetail = () => {
     },
   });
 
+  // Fetch materials linked to this lesson
+  const { data: materials = [] } = useQuery({
+    queryKey: ['materiais', lessonId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('materiais')
+        .select('*')
+        .eq('aula_id', lessonId)
+        .order('id');
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch exercises linked to this lesson
+  const { data: exercises = [] } = useQuery({
+    queryKey: ['exercicios-aula', lessonId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('exercicios')
+        .select('*')
+        .eq('aula_id', lessonId)
+        .order('id');
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch challenges linked to this lesson
+  const { data: challenges = [] } = useQuery({
+    queryKey: ['desafios-aula', lessonId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('desafios')
+        .select('*')
+        .eq('aula_id', lessonId)
+        .order('id');
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const currentProgress = getProgress('aula', lessonId);
   const unlocked = isLessonUnlocked(lessonId);
   const nextLesson = lessons.find(l => l.id === lessonId + 1);
@@ -193,44 +238,94 @@ const ClassDetail = () => {
             </TabsContent>
 
             <TabsContent value="materiais">
-              <Card>
-                <CardContent className="pt-6">
-                  <p className="text-muted-foreground">Materiais de apoio serão adicionados pelo instrutor.</p>
-                </CardContent>
-              </Card>
+              {materials.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-muted-foreground">Nenhum material de apoio disponível para esta aula.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {materials.map((material) => (
+                    <Card key={material.id}>
+                      <CardContent className="pt-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-semibold mb-2">{material.title}</h3>
+                            <p className="text-muted-foreground mb-4">{material.description}</p>
+                            <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-4">
+                              {material.category}
+                            </span>
+                          </div>
+                        </div>
+                        <Button onClick={() => navigate(`/materiais/${material.id}`)}>
+                          Ver Material
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="exercicios">
-              <Card>
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-4">Exercício 1 - Crie um banco de dados</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Você foi contratado para desenvolver o sistema de gerenciamento de uma biblioteca fictícia. O primeiro passo é a criação das tabelas
-                    principais do banco de dados.
-                  </p>
-                  <Button onClick={() => navigate("/exercicios/1")}>Acessar Exercício</Button>
-                </CardContent>
-              </Card>
+              {exercises.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-muted-foreground">Nenhum exercício disponível para esta aula.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {exercises.map((exercise) => (
+                    <Card key={exercise.id}>
+                      <CardContent className="pt-6">
+                        <h3 className="text-xl font-semibold mb-4">{exercise.title}</h3>
+                        <p className="text-muted-foreground mb-4">{exercise.description}</p>
+                        <div className="flex gap-3 mb-4">
+                          <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                            +{exercise.points} pts
+                          </span>
+                          <span className="bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full text-sm font-medium">
+                            +{exercise.coins} moedas
+                          </span>
+                        </div>
+                        <Button onClick={() => navigate(`/exercicios/${exercise.id}`)}>Acessar Exercício</Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="desafios">
-              <Card>
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-4">Desafio 1 - Sistema de Gestão de Biblioteca</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Uma biblioteca municipal está modernizando seu sistema de controle. Você foi contratado como analista de dados e precisa extrair informações cruciais do banco de dados existente.
-                  </p>
-                  <div className="flex gap-3 mb-4">
-                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
-                      +150 pts
-                    </span>
-                    <span className="bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full text-sm font-medium">
-                      +75 moedas
-                    </span>
-                  </div>
-                  <Button onClick={() => navigate("/desafios/1")}>Acessar Desafio</Button>
-                </CardContent>
-              </Card>
+              {challenges.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-muted-foreground">Nenhum desafio disponível para esta aula.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {challenges.map((challenge) => (
+                    <Card key={challenge.id}>
+                      <CardContent className="pt-6">
+                        <h3 className="text-xl font-semibold mb-4">{challenge.title}</h3>
+                        <p className="text-muted-foreground mb-4">{challenge.description}</p>
+                        <div className="flex gap-3 mb-4">
+                          <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                            +{challenge.points} pts
+                          </span>
+                          <span className="bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full text-sm font-medium">
+                            +{challenge.coins} moedas
+                          </span>
+                        </div>
+                        <Button onClick={() => navigate(`/desafios/${challenge.id}`)}>Acessar Desafio</Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
