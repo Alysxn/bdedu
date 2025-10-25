@@ -1,28 +1,43 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Database } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { signIn, user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (user) {
+      navigate("/materiais");
+    }
+  }, [user, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Mock login - in real app, validate credentials
-    if (email && password) {
-      localStorage.setItem("isAuthenticated", "true");
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Bem-vindo ao BD.Edu",
-      });
-      navigate("/materiais");
+    if (!email || !password) {
+      toast.error("Por favor, preencha todos os campos");
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await signIn(email, password);
+    setLoading(false);
+
+    if (error) {
+      if (error.message.includes("Invalid login credentials")) {
+        toast.error("Email ou senha incorretos");
+      } else {
+        toast.error("Erro ao fazer login: " + error.message);
+      }
     }
   };
 
@@ -73,8 +88,8 @@ const Login = () => {
             </a>
           </div>
 
-          <Button type="submit" className="w-full" size="lg">
-            Entrar
+          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar"}
           </Button>
 
           <div className="text-center text-sm text-muted-foreground">
