@@ -44,7 +44,11 @@ const Exercises = () => {
                       <CheckCircle2 className="h-5 w-5" />
                       <span className="font-medium">Concluído</span>
                     </div>
-                    <Button variant="outline" className="bg-success/10 text-success hover:bg-success/20 border-success">
+                    <Button 
+                      variant="outline" 
+                      className="bg-success/10 text-success hover:bg-success/20 border-success"
+                      onClick={() => navigate(`/exercicios/${exercise.id}`)}
+                    >
                       <Play className="h-4 w-4 mr-2" />
                       Refazer
                     </Button>
