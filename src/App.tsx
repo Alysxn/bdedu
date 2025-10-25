@@ -13,6 +13,7 @@ import ClassDetail from "./pages/ClassDetail";
 import Exercises from "./pages/Exercises";
 import ExerciseDetail from "./pages/ExerciseDetail";
 import Challenges from "./pages/Challenges";
+import ChallengeDetail from "./pages/ChallengeDetail";
 import Achievements from "./pages/Achievements";
 import Store from "./pages/Store";
 import Profile from "./pages/Profile";
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/exercicios" element={<ProtectedRoute><Exercises /></ProtectedRoute>} />
           <Route path="/exercicios/:id" element={<ProtectedRoute><ExerciseDetail /></ProtectedRoute>} />
           <Route path="/desafios" element={<ProtectedRoute><Challenges /></ProtectedRoute>} />
+          <Route path="/desafios/:id" element={<ProtectedRoute><ChallengeDetail /></ProtectedRoute>} />
           <Route path="/conquistas" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
           <Route path="/loja" element={<ProtectedRoute><Store /></ProtectedRoute>} />
           <Route path="/meuperfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

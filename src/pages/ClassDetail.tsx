@@ -99,7 +99,19 @@ const ClassDetail = () => {
             <TabsContent value="desafios">
               <Card>
                 <CardContent className="pt-6">
-                  <p className="text-muted-foreground">Desafios serão liberados após a conclusão dos exercícios.</p>
+                  <h3 className="text-xl font-semibold mb-4">Desafio 1 - Sistema de Gestão de Biblioteca</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Uma biblioteca municipal está modernizando seu sistema de controle. Você foi contratado como analista de dados e precisa extrair informações cruciais do banco de dados existente.
+                  </p>
+                  <div className="flex gap-3 mb-4">
+                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                      +150 pts
+                    </span>
+                    <span className="bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full text-sm font-medium">
+                      +75 moedas
+                    </span>
+                  </div>
+                  <Button onClick={() => navigate("/desafios/1")}>Acessar Desafio</Button>
                 </CardContent>
               </Card>
             </TabsContent>
