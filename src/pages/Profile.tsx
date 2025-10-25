@@ -5,11 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { RankingsDialog } from "@/components/RankingsDialog";
-import { BookOpen, Target, GraduationCap, Trophy, User, Rocket, Star, Heart, Zap, Crown, Shield, Sparkles, Coins } from "lucide-react";
+import { BookOpen, Target, GraduationCap, Trophy, User, Rocket, Star, Heart, Zap, Crown, Shield, Sparkles, Coins, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { useProgress } from "@/hooks/useProgress";
 import { useStore } from "@/hooks/useStore";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 const iconMap: { [key: string]: any } = {
@@ -24,11 +26,30 @@ const iconMap: { [key: string]: any } = {
 };
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [showRankings, setShowRankings] = useState(false);
   const { profile, isLoading, updateProfile } = useProfile();
   const { progress } = useProgress();
   const { purchases } = useStore();
+  const { signOut } = useAuth();
   const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso.",
+      });
+      navigate("/login");
+    } catch (error) {
+      toast({
+        title: "Erro ao fazer logout",
+        description: "Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isLoading || !profile) {
     return (
@@ -136,6 +157,15 @@ const Profile = () => {
                   <Label>Ranking</Label>
                   <Input value={currentRank} className="bg-muted" readOnly />
                 </div>
+
+                <Button 
+                  variant="destructive" 
+                  className="w-full mt-4"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sair da conta
+                </Button>
               </div>
             </CardContent>
           </Card>
