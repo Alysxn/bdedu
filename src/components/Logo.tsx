@@ -6,7 +6,7 @@ export const Logo = () => {
       <img 
         src={logoImage} 
         alt="BD.Edu Logo" 
-        className="h-16 w-16 object-contain"
+        className="h-24 w-24 object-contain"
       />
       <span className="text-2xl font-bold text-foreground">BD.Edu</span>
     </div>
