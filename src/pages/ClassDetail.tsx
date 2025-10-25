@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Play, Pause } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,17 +11,16 @@ import { useProgress } from "@/hooks/useProgress";
 import { useLessons } from "@/hooks/useLessons";
 import { useProfile } from "@/hooks/useProfile";
 import { useAchievements } from "@/hooks/useAchievements";
+import { YouTubePlayer } from "@/components/YouTubePlayer";
 
 const ClassDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const lessonId = parseInt(id || "1");
   const [activeTab, setActiveTab] = useState("descricao");
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const progressIntervalRef = useRef<NodeJS.Timeout>();
+  const [playing, setPlaying] = useState(false);
+  const [played, setPlayed] = useState(0);
+  const lastProgressRef = useRef(0);
 
   const { updateProgress, getProgress } = useProgress();
   const { isLessonUnlocked, lessons } = useLessons();
@@ -47,60 +46,33 @@ const ClassDetail = () => {
   const unlocked = isLessonUnlocked(lessonId);
   const nextLesson = lessons.find(l => l.id === lessonId + 1);
 
-  // Track video progress
-  useEffect(() => {
-    if (isPlaying && duration > 0) {
-      progressIntervalRef.current = setInterval(() => {
-        const progress = Math.round((currentTime / duration) * 100);
-        if (progress > currentProgress && progress <= 100) {
-          updateProgress({ 
-            contentType: 'aula', 
-            contentId: lessonId, 
-            progressPercentage: progress 
-          });
+  // Handle video progress updates
+  const handleProgress = (state: { played: number; playedSeconds: number }) => {
+    const progress = Math.round(state.played * 100);
+    setPlayed(state.played);
 
-          // Award rewards on completion
-          if (progress === 100 && currentProgress < 100) {
-            updatePoints(50);
-            updateCoins(25);
-            updateAchievementProgress({ achievementId: 'first-class' });
-            updateAchievementProgress({ achievementId: 'three-classes' });
-            updateAchievementProgress({ achievementId: 'all-classes' });
-          }
-        }
-      }, 2000);
-    }
-
-    return () => {
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-      }
-    };
-  }, [isPlaying, currentTime, duration, currentProgress]);
-
-  // Simulate video progress for demo
-  useEffect(() => {
-    setDuration(90); // 90 seconds for demo
-  }, []);
-
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  useEffect(() => {
-    if (isPlaying) {
-      const interval = setInterval(() => {
-        setCurrentTime(prev => {
-          if (prev >= duration) {
-            setIsPlaying(false);
-            return duration;
-          }
-          return prev + 1;
+    // Update backend every 5% progress or on completion
+    if (progress >= lastProgressRef.current + 5 || progress === 100) {
+      lastProgressRef.current = progress;
+      
+      if (progress > currentProgress && progress <= 100) {
+        updateProgress({ 
+          contentType: 'aula', 
+          contentId: lessonId, 
+          progressPercentage: progress 
         });
-      }, 1000);
-      return () => clearInterval(interval);
+
+        // Award rewards on completion
+        if (progress === 100 && currentProgress < 100) {
+          updatePoints(50);
+          updateCoins(25);
+          updateAchievementProgress({ achievementId: 'first-class' });
+          updateAchievementProgress({ achievementId: 'three-classes' });
+          updateAchievementProgress({ achievementId: 'all-classes' });
+        }
+      }
     }
-  }, [isPlaying, duration]);
+  };
 
   if (isLoading || !lesson) {
     return (
@@ -129,7 +101,8 @@ const ClassDetail = () => {
     );
   }
 
-  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const progressPercent = played * 100;
+  const videoUrl = lesson.video_url || "https://www.youtube.com/watch?v=Qef5aOKI81o";
 
   return (
     <AppLayout>
@@ -148,35 +121,27 @@ const ClassDetail = () => {
           
           <div className="w-full max-w-4xl mx-auto mb-6">
             <div className="relative bg-muted rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%' }}>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <div className="text-muted-foreground text-6xl mb-4">▶</div>
-                <p className="text-muted-foreground mb-4">Simulação de Vídeo</p>
-                <Button onClick={handlePlayPause} size="lg" className="mb-4">
-                  {isPlaying ? (
-                    <>
-                      <Pause className="h-4 w-4 mr-2" />
-                      Pausar
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-4 w-4 mr-2" />
-                      Reproduzir
-                    </>
-                  )}
-                </Button>
-                <div className="w-full px-8">
-                  <div className="bg-background rounded-full h-2 mb-2">
-                    <div 
-                      className="bg-primary h-full rounded-full transition-all"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>{Math.floor(currentTime / 60)}:{(currentTime % 60).toString().padStart(2, '0')}</span>
-                    <span>{currentProgress}% completo</span>
-                    <span>{Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, '0')}</span>
-                  </div>
-                </div>
+              <div className="absolute inset-0">
+                <YouTubePlayer
+                  url={videoUrl}
+                  playing={playing}
+                  onPlay={() => setPlaying(true)}
+                  onPause={() => setPlaying(false)}
+                  onProgress={handleProgress}
+                  onDuration={() => {}}
+                />
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="bg-muted rounded-full h-2 mb-2">
+                <div 
+                  className="bg-primary h-full rounded-full transition-all"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Progresso da Aula</span>
+                <span className="font-semibold">{Math.round(progressPercent)}% completo</span>
               </div>
             </div>
           </div>
