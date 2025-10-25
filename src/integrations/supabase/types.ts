@@ -222,6 +222,35 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_materials: {
+        Row: {
+          id: string
+          material_id: number
+          saved_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          material_id: number
+          saved_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          material_id?: number
+          saved_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_materials_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_items: {
         Row: {
           created_at: string | null
@@ -303,6 +332,7 @@ export type Database = {
           content_type: string
           created_at: string | null
           id: string
+          progress_percentage: number | null
           user_id: string | null
         }
         Insert: {
@@ -313,6 +343,7 @@ export type Database = {
           content_type: string
           created_at?: string | null
           id?: string
+          progress_percentage?: number | null
           user_id?: string | null
         }
         Update: {
@@ -323,6 +354,7 @@ export type Database = {
           content_type?: string
           created_at?: string | null
           id?: string
+          progress_percentage?: number | null
           user_id?: string | null
         }
         Relationships: [
@@ -402,6 +434,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_previous_lesson_completed: {
+        Args: { _lesson_id: number; _user_id: string }
         Returns: boolean
       }
     }

@@ -1,15 +1,135 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Play, Pause } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useProgress } from "@/hooks/useProgress";
+import { useLessons } from "@/hooks/useLessons";
+import { useProfile } from "@/hooks/useProfile";
+import { useAchievements } from "@/hooks/useAchievements";
 
 const ClassDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const lessonId = parseInt(id || "1");
   const [activeTab, setActiveTab] = useState("descricao");
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout>();
+
+  const { updateProgress, getProgress } = useProgress();
+  const { isLessonUnlocked, lessons } = useLessons();
+  const { updatePoints, updateCoins } = useProfile();
+  const { updateProgress: updateAchievementProgress } = useAchievements();
+
+  // Fetch lesson details
+  const { data: lesson, isLoading } = useQuery({
+    queryKey: ['aula', lessonId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('aulas')
+        .select('*')
+        .eq('id', lessonId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const currentProgress = getProgress('aula', lessonId);
+  const unlocked = isLessonUnlocked(lessonId);
+  const nextLesson = lessons.find(l => l.id === lessonId + 1);
+
+  // Track video progress
+  useEffect(() => {
+    if (isPlaying && duration > 0) {
+      progressIntervalRef.current = setInterval(() => {
+        const progress = Math.round((currentTime / duration) * 100);
+        if (progress > currentProgress && progress <= 100) {
+          updateProgress({ 
+            contentType: 'aula', 
+            contentId: lessonId, 
+            progressPercentage: progress 
+          });
+
+          // Award rewards on completion
+          if (progress === 100 && currentProgress < 100) {
+            updatePoints(50);
+            updateCoins(25);
+            updateAchievementProgress({ achievementId: 'first-class' });
+            updateAchievementProgress({ achievementId: 'three-classes' });
+            updateAchievementProgress({ achievementId: 'all-classes' });
+          }
+        }
+      }, 2000);
+    }
+
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, [isPlaying, currentTime, duration, currentProgress]);
+
+  // Simulate video progress for demo
+  useEffect(() => {
+    setDuration(90); // 90 seconds for demo
+  }, []);
+
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+  useEffect(() => {
+    if (isPlaying) {
+      const interval = setInterval(() => {
+        setCurrentTime(prev => {
+          if (prev >= duration) {
+            setIsPlaying(false);
+            return duration;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isPlaying, duration]);
+
+  if (isLoading || !lesson) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Carregando aula...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!unlocked) {
+    return (
+      <AppLayout>
+        <div className="text-center py-12">
+          <h1 className="text-3xl font-bold mb-4">Aula Bloqueada</h1>
+          <p className="text-muted-foreground mb-6">
+            Complete a aula anterior para desbloquear esta aula.
+          </p>
+          <Button onClick={() => navigate("/aulas")}>Voltar para Aulas</Button>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <AppLayout>
@@ -24,14 +144,49 @@ const ClassDetail = () => {
         </Button>
 
         <div>
-          <h1 className="text-4xl font-bold mb-6 text-foreground text-center">Introdução a SQL</h1>
+          <h1 className="text-4xl font-bold mb-6 text-foreground text-center">{lesson.title}</h1>
           
-          <div className="w-full max-w-4xl mx-auto h-96 bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-6xl mb-6">
-            303 × 161
+          <div className="w-full max-w-4xl mx-auto mb-6">
+            <div className="relative bg-muted rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="text-muted-foreground text-6xl mb-4">▶</div>
+                <p className="text-muted-foreground mb-4">Simulação de Vídeo</p>
+                <Button onClick={handlePlayPause} size="lg" className="mb-4">
+                  {isPlaying ? (
+                    <>
+                      <Pause className="h-4 w-4 mr-2" />
+                      Pausar
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-4 w-4 mr-2" />
+                      Reproduzir
+                    </>
+                  )}
+                </Button>
+                <div className="w-full px-8">
+                  <div className="bg-background rounded-full h-2 mb-2">
+                    <div 
+                      className="bg-primary h-full rounded-full transition-all"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>{Math.floor(currentTime / 60)}:{(currentTime % 60).toString().padStart(2, '0')}</span>
+                    <span>{currentProgress}% completo</span>
+                    <span>{Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, '0')}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end mb-6">
-            <Button size="lg">Próxima aula</Button>
+            {nextLesson && nextLesson.isUnlocked && (
+              <Button size="lg" onClick={() => navigate(`/aulas/${nextLesson.id}`)}>
+                Próxima aula
+              </Button>
+            )}
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -47,7 +202,7 @@ const ClassDetail = () => {
                 <CardContent className="pt-6">
                   <h2 className="text-2xl font-bold mb-4">Descrição</h2>
                   <p className="text-muted-foreground mb-6">
-                    Aprenda os fundamentos do SQL com exemplos práticos e exercícios.
+                    {lesson.description}
                   </p>
 
                   <h3 className="text-xl font-semibold mb-3">Objetivos</h3>

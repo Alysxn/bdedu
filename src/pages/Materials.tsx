@@ -3,69 +3,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Bookmark } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-
-const materials = [
-  {
-    id: 1,
-    category: "Basic SQL",
-    title: "Introduction to SQL",
-    description: "Learn the fundamentals of SQL, including data retrieval, filtering, and sorting.",
-  },
-  {
-    id: 2,
-    category: "Advanced SQL",
-    title: "Mastering SQL Queries",
-    description: "Dive deeper into SQL with advanced querying techniques, joins, and subqueries.",
-  },
-  {
-    id: 3,
-    category: "SQL Optimization",
-    title: "Optimizing SQL Performance",
-    description: "Enhance your SQL skills by learning how to optimize queries for better performance.",
-  },
-  {
-    id: 4,
-    category: "SQL Best Practices",
-    title: "SQL Coding Standards",
-    description: "Follow industry best practices for writing clean, maintainable, and efficient SQL code.",
-  },
-];
-
-const savedList = [
-  "SQL Basics",
-  "Advanced Queries",
-  "Performance Tuning",
-  "Coding Standards",
-  "Database Design",
-];
+import { useMaterials } from "@/hooks/useMaterials";
 
 const Materials = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [savedMaterials, setSavedMaterials] = useState<number[]>([1, 2, 3, 4, 5]);
+  const { materials, savedMaterials, isLoading, toggleSaveMaterial, isMaterialSaved } = useMaterials();
 
-  const toggleSaveMaterial = (materialId: number) => {
-    setSavedMaterials((prev) => {
-      const isCurrentlySaved = prev.includes(materialId);
-      if (isCurrentlySaved) {
-        toast({
-          title: "Material removido",
-          description: "Material removido da sua lista",
-        });
-        return prev.filter((id) => id !== materialId);
-      } else {
-        toast({
-          title: "Material salvo",
-          description: "Material adicionado à sua lista",
-        });
-        return [...prev, materialId];
-      }
-    });
-  };
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Carregando materiais...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
 
-  const savedMaterialsList = materials.filter((m) => savedMaterials.includes(m.id));
+  const savedMaterialsList = materials.filter(m => isMaterialSaved(m.id));
 
   return (
     <AppLayout>
@@ -75,7 +32,7 @@ const Materials = () => {
 
           <div className="space-y-6">
             {materials.map((material) => {
-              const isSaved = savedMaterials.includes(material.id);
+              const isSaved = isMaterialSaved(material.id);
               return (
                 <Card key={material.id}>
                   <CardHeader>
