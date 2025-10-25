@@ -98,7 +98,7 @@ const ExerciseDetail = () => {
                 height="200px"
                 extensions={[sql()]}
                 onChange={(value) => setCode(value)}
-                theme="dark"
+                theme="light"
                 className="border rounded-lg overflow-hidden"
               />
 

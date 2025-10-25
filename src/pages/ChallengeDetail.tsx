@@ -9,6 +9,14 @@ import { sql } from "@codemirror/lang-sql";
 import { ExerciseSuccessDialog } from "@/components/ExerciseSuccessDialog";
 import { ExerciseErrorDialog } from "@/components/ExerciseErrorDialog";
 
+const sqlKeywords = [
+  "USE", "CREATE", "TABLE", "SELECT", "FROM", "WHERE", 
+  "INSERT", "INTO", "VALUES", "UPDATE", "SET", "DELETE",
+  "JOIN", "INNER", "LEFT", "RIGHT", "ON", "GROUP BY", 
+  "ORDER BY", "AND", "OR", "NOT", "DATABASE", "INT", "VARCHAR",
+  "DATEDIFF", "COUNT", "SUM", "AVG", "AS", "DISTINCT"
+];
+
 const ChallengeDetail = () => {
   const navigate = useNavigate();
   const [code, setCode] = useState("-- Escreva sua consulta SQL aqui\n");
@@ -16,6 +24,11 @@ const ChallengeDetail = () => {
   const [showError, setShowError] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [showContext, setShowContext] = useState(true);
+  const [showSyntax, setShowSyntax] = useState(true);
+
+  const insertKeyword = (keyword: string) => {
+    setCode(code + " " + keyword);
+  };
 
   const handleExecute = () => {
     const newAttempts = attempts + 1;
@@ -128,16 +141,6 @@ const ChallengeDetail = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-primary/20">
-              <CardContent className="pt-6">
-                <h4 className="font-semibold text-sm mb-3 text-foreground">Dica:</h4>
-                <p className="text-xs text-muted-foreground">
-                  Você precisará usar JOIN para relacionar as tabelas e WHERE para filtrar apenas
-                  os empréstimos não devolvidos. Considere usar DATEDIFF ou funções similares para calcular
-                  o atraso.
-                </p>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Code Editor Panel */}
@@ -170,10 +173,41 @@ const ChallengeDetail = () => {
                   />
                 </div>
 
+                {showSyntax && (
+                  <div className="border-t pt-4 mt-4">
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <Button variant="outline" size="sm" onClick={() => insertKeyword("(")}>(</Button>
+                      <Button variant="outline" size="sm" onClick={() => insertKeyword(")")}>)</Button>
+                      <Button variant="outline" size="sm" onClick={() => insertKeyword(";")}>;</Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {sqlKeywords.map((keyword) => (
+                        <Button
+                          key={keyword}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => insertKeyword(keyword)}
+                        >
+                          {keyword}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center mt-4">
-                  <p className="text-sm text-muted-foreground">
-                    Tentativas: <span className="font-semibold text-foreground">{attempts}</span>
-                  </p>
+                  <div className="flex items-center gap-4">
+                    <p className="text-sm text-muted-foreground">
+                      Tentativas: <span className="font-semibold text-foreground">{attempts}</span>
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowSyntax(!showSyntax)}
+                    >
+                      {showSyntax ? "Ocultar Sintaxe" : "Mostrar Sintaxe"}
+                    </Button>
+                  </div>
                   <Button onClick={handleExecute} size="lg">
                     <Play className="h-4 w-4 mr-2" />
                     Executar código

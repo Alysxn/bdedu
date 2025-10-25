@@ -41,7 +41,7 @@ export const ExerciseErrorDialog = ({
             Tentativas até agora: {attempts}
           </p>
 
-          {hint && (
+          {hint && attempts > 1 && (
             <div className="mt-4">
               {!showHint ? (
                 <Button
