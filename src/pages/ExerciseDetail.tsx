@@ -133,7 +133,7 @@ const ExerciseDetail = () => {
               <CardTitle>Enunciado do Problema</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-muted-foreground">{exercise.description}</p>
+              <p className="text-muted-foreground whitespace-pre-line">{exercise.description}</p>
             </CardContent>
           </Card>
 
