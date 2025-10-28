@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => ({
   base: '/bdedu/',
   server: {
     host: "::",
-    port: 80800,
+    port: 8080,
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
