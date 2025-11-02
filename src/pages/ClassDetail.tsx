@@ -208,31 +208,41 @@ const ClassDetail = () => {
               <Card>
                 <CardContent className="pt-6">
                   <h2 className="text-2xl font-bold mb-4">Descrição</h2>
-                  <p className="text-muted-foreground mb-6">
+                  <p className="text-muted-foreground mb-6 leading-relaxed">
                     {lesson.description}
                   </p>
 
-                  <h3 className="text-xl font-semibold mb-3">Objetivos</h3>
-                  <ul className="space-y-2 mb-6">
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary">•</span>
-                      <span>Entender a estrutura básica de um banco de dados SQL.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary">•</span>
-                      <span>Aprender a escrever consultas para recuperar dados.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary">•</span>
-                      <span>Conhecer os principais comandos DML e DDL.</span>
-                    </li>
-                  </ul>
+                  {lesson.objetivo_geral && (
+                    <>
+                      <h3 className="text-xl font-semibold mb-3">Objetivo Geral</h3>
+                      <p className="text-muted-foreground mb-6 leading-relaxed">
+                        {lesson.objetivo_geral}
+                      </p>
+                    </>
+                  )}
 
-                  <h3 className="text-xl font-semibold mb-3">Próximos Passos</h3>
-                  <p className="text-muted-foreground">
-                    Após esta aula, recomendamos que você explore os materiais de apoio e realize as atividades propostas para consolidar o seu
-                    aprendizado. Não se esqueça de participar dos desafios para testar os seus conhecimentos!
-                  </p>
+                  {lesson.objetivos_especificos && (
+                    <>
+                      <h3 className="text-xl font-semibold mb-3">Objetivos Específicos</h3>
+                      <ul className="space-y-2 mb-6">
+                        {lesson.objetivos_especificos.split('. ').filter(obj => obj.trim()).map((objetivo, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <span className="text-primary mt-1">•</span>
+                            <span className="text-muted-foreground leading-relaxed">{objetivo.trim()}{objetivo.endsWith('.') ? '' : '.'}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+
+                  {lesson.proximos_passos && (
+                    <>
+                      <h3 className="text-xl font-semibold mb-3">Próximos Passos</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {lesson.proximos_passos}
+                      </p>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

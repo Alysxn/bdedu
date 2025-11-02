@@ -56,6 +56,9 @@ export type Database = {
           description: string
           duration: string
           id: number
+          objetivo_geral: string | null
+          objetivos_especificos: string | null
+          proximos_passos: string | null
           title: string
           video_url: string
         }
@@ -64,6 +67,9 @@ export type Database = {
           description: string
           duration: string
           id?: number
+          objetivo_geral?: string | null
+          objetivos_especificos?: string | null
+          proximos_passos?: string | null
           title: string
           video_url: string
         }
@@ -72,6 +78,9 @@ export type Database = {
           description?: string
           duration?: string
           id?: number
+          objetivo_geral?: string | null
+          objetivos_especificos?: string | null
+          proximos_passos?: string | null
           title?: string
           video_url?: string
         }
