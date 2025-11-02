@@ -3,7 +3,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText, Target, ListChecks, ArrowRight } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -206,42 +206,62 @@ const ClassDetail = () => {
 
             <TabsContent value="descricao" className="space-y-6">
               <Card>
-                <CardContent className="pt-6">
-                  <h2 className="text-2xl font-bold mb-4">Descrição</h2>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
-                    {lesson.description}
-                  </p>
+                <CardContent className="pt-6 space-y-8">
+                  {/* Descrição */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-primary" />
+                      <h2 className="text-2xl font-bold">Descrição</h2>
+                    </div>
+                    <p className="text-muted-foreground leading-relaxed pl-7">
+                      {lesson.description}
+                    </p>
+                  </div>
 
+                  {/* Objetivo Geral */}
                   {lesson.objetivo_geral && (
-                    <>
-                      <h3 className="text-xl font-semibold mb-3">Objetivo Geral</h3>
-                      <p className="text-muted-foreground mb-6 leading-relaxed">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Target className="h-5 w-5 text-primary" />
+                        <h3 className="text-xl font-semibold">Objetivo Geral</h3>
+                      </div>
+                      <p className="text-muted-foreground leading-relaxed pl-7">
                         {lesson.objetivo_geral}
                       </p>
-                    </>
+                    </div>
                   )}
 
+                  {/* Objetivos Específicos */}
                   {lesson.objetivos_especificos && (
-                    <>
-                      <h3 className="text-xl font-semibold mb-3">Objetivos Específicos</h3>
-                      <ul className="space-y-2 mb-6">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <ListChecks className="h-5 w-5 text-primary" />
+                        <h3 className="text-xl font-semibold">Objetivos Específicos</h3>
+                      </div>
+                      <ul className="space-y-3 pl-7">
                         {lesson.objetivos_especificos.split('. ').filter(obj => obj.trim()).map((objetivo, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <span className="text-primary mt-1">•</span>
-                            <span className="text-muted-foreground leading-relaxed">{objetivo.trim()}{objetivo.endsWith('.') ? '' : '.'}</span>
+                          <li key={index} className="flex items-start gap-3">
+                            <span className="text-primary font-bold mt-0.5 min-w-[8px]">•</span>
+                            <span className="text-muted-foreground leading-relaxed flex-1">
+                              {objetivo.trim()}{objetivo.endsWith('.') ? '' : '.'}
+                            </span>
                           </li>
                         ))}
                       </ul>
-                    </>
+                    </div>
                   )}
 
+                  {/* Próximos Passos */}
                   {lesson.proximos_passos && (
-                    <>
-                      <h3 className="text-xl font-semibold mb-3">Próximos Passos</h3>
-                      <p className="text-muted-foreground leading-relaxed">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <ArrowRight className="h-5 w-5 text-primary" />
+                        <h3 className="text-xl font-semibold">Próximos Passos</h3>
+                      </div>
+                      <p className="text-muted-foreground leading-relaxed pl-7">
                         {lesson.proximos_passos}
                       </p>
-                    </>
+                    </div>
                   )}
                 </CardContent>
               </Card>
