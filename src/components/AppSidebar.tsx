@@ -4,10 +4,10 @@ import { cn } from "@/lib/utils";
 
 const menuItems = [
   { title: "Meu perfil", url: "/meuperfil", icon: User },
-  { title: "Materiais", url: "/materiais", icon: BookOpen },
   { title: "Aulas", url: "/aulas", icon: GraduationCap },
   { title: "Exercícios", url: "/exercicios", icon: FileText },
   { title: "Desafios", url: "/desafios", icon: Target },
+  { title: "Materiais", url: "/materiais", icon: BookOpen },
   { title: "Conquistas", url: "/conquistas", icon: Trophy },
   { title: "Loja", url: "/loja", icon: ShoppingCart },
 ];
