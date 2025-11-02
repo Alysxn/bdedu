@@ -146,14 +146,14 @@ const ChallengeDetail = () => {
                   <Info className="h-5 w-5 text-primary" />
                   <h3 className="text-lg font-semibold">Contexto do Desafio</h3>
                 </div>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-sm text-muted-foreground mb-4 whitespace-pre-line">
                   {challenge.scenario}
                 </p>
                 
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-semibold text-sm mb-2 text-foreground">Objetivo:</h4>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground whitespace-pre-line">
                       {challenge.description}
                     </p>
                   </div>
