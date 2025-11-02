@@ -218,6 +218,7 @@ export type Database = {
           email: string
           id: string
           points: number | null
+          tutorial_completed: boolean | null
           updated_at: string | null
         }
         Insert: {
@@ -228,6 +229,7 @@ export type Database = {
           email: string
           id: string
           points?: number | null
+          tutorial_completed?: boolean | null
           updated_at?: string | null
         }
         Update: {
@@ -238,6 +240,7 @@ export type Database = {
           email?: string
           id?: string
           points?: number | null
+          tutorial_completed?: boolean | null
           updated_at?: string | null
         }
         Relationships: []

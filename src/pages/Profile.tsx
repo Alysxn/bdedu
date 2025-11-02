@@ -13,6 +13,8 @@ import { useProgress } from "@/hooks/useProgress";
 import { useStore } from "@/hooks/useStore";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import Tutorial from "@/components/Tutorial";
+import { useTutorial } from "@/hooks/useTutorial";
 
 const iconMap: { [key: string]: any } = {
   "User": User,
@@ -28,11 +30,13 @@ const iconMap: { [key: string]: any } = {
 const Profile = () => {
   const navigate = useNavigate();
   const [showRankings, setShowRankings] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const { profile, isLoading, updateProfile } = useProfile();
   const { progress } = useProgress();
   const { purchases } = useStore();
   const { signOut } = useAuth();
   const { toast } = useToast();
+  const { markTutorialCompleted } = useTutorial();
 
   const handleLogout = async () => {
     try {
@@ -159,8 +163,16 @@ const Profile = () => {
                 </div>
 
                 <Button 
-                  variant="destructive" 
+                  variant="outline" 
                   className="w-full mt-4"
+                  onClick={() => setShowTutorial(true)}
+                >
+                  Ver Tutorial
+                </Button>
+
+                <Button 
+                  variant="destructive" 
+                  className="w-full mt-2"
                   onClick={handleLogout}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
@@ -282,6 +294,13 @@ const Profile = () => {
       </div>
 
       <RankingsDialog open={showRankings} onOpenChange={setShowRankings} />
+      <Tutorial 
+        open={showTutorial} 
+        onClose={() => {
+          setShowTutorial(false);
+          markTutorialCompleted();
+        }} 
+      />
     </AppLayout>
   );
 };
