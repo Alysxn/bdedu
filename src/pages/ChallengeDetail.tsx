@@ -327,6 +327,7 @@ const ChallengeDetail = () => {
           points={pointsReward}
           coins={coinsReward}
           resultTable={(challenge as any).example_result as { columns: string[]; rows: string[][] } | undefined}
+          contentType="desafio"
         />
 
         <ExerciseErrorDialog

@@ -13,6 +13,7 @@ interface ExerciseSuccessDialogProps {
     columns: string[];
     rows: string[][];
   };
+  contentType?: 'exercicio' | 'desafio';
 }
 
 export const ExerciseSuccessDialog = ({
@@ -22,8 +23,14 @@ export const ExerciseSuccessDialog = ({
   points,
   coins,
   resultTable,
+  contentType = 'exercicio',
 }: ExerciseSuccessDialogProps) => {
   const navigate = useNavigate();
+  
+  const isChallenge = contentType === 'desafio';
+  const title = isChallenge ? 'Desafio Concluído!' : 'Exercício Concluído!';
+  const buttonText = isChallenge ? 'Voltar aos Desafios' : 'Voltar aos Exercícios';
+  const navigatePath = isChallenge ? '/desafios' : '/exercicios';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -35,7 +42,7 @@ export const ExerciseSuccessDialog = ({
             </div>
           </div>
 
-          <h2 className="text-2xl font-bold">Exercício Concluído!</h2>
+          <h2 className="text-2xl font-bold">{title}</h2>
           <p className="text-muted-foreground">
             Parabéns! Você criou a tabela corretamente!
           </p>
@@ -85,10 +92,10 @@ export const ExerciseSuccessDialog = ({
             className="w-full mt-6"
             onClick={() => {
               onOpenChange(false);
-              navigate("/exercicios");
+              navigate(navigatePath);
             }}
           >
-            Voltar aos Exercícios
+            {buttonText}
           </Button>
         </div>
       </DialogContent>
