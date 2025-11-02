@@ -5,10 +5,13 @@ import { Progress } from "@/components/ui/progress";
 import { Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLessons } from "@/hooks/useLessons";
+import { getYouTubeThumbnail } from "@/lib/youtube";
+import { useState } from "react";
 
 const Classes = () => {
   const navigate = useNavigate();
   const { lessons, isLoading } = useLessons();
+  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
 
   if (isLoading) {
     return (
@@ -53,8 +56,21 @@ const Classes = () => {
                     <div>Duração: {lesson.duration}</div>
                   </div>
                 </div>
-                <div className="w-80 h-40 bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-4xl">
-                  303 × 161
+                <div className="w-80 h-40 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                  {!imageErrors[lesson.id] && getYouTubeThumbnail(lesson.video_url) ? (
+                    <img
+                      src={getYouTubeThumbnail(lesson.video_url)!}
+                      alt={`Thumbnail da aula ${lesson.title}`}
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                      onError={() => setImageErrors(prev => ({ ...prev, [lesson.id]: true }))}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
+                      <div className="text-center">
+                        <div className="text-sm font-medium">Aula {lesson.id}</div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardHeader>
