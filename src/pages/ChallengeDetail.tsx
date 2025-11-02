@@ -326,13 +326,7 @@ const ChallengeDetail = () => {
           attempts={attempts + 1}
           points={pointsReward}
           coins={coinsReward}
-          resultTable={{
-            columns: ["Título", "Usuário", "Data Empréstimo", "Dias de Atraso"],
-            rows: [
-              ["O Senhor dos Anéis", "Ana Silva", "15/09/2025", "25"],
-              ["1984", "Carlos Santos", "20/09/2025", "20"],
-            ],
-          }}
+          resultTable={(challenge as any).example_result as { columns: string[]; rows: string[][] } | undefined}
         />
 
         <ExerciseErrorDialog

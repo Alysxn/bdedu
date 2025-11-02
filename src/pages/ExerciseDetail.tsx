@@ -211,12 +211,7 @@ const ExerciseDetail = () => {
         attempts={attempts + 1}
         points={pointsReward}
         coins={coinsReward}
-        resultTable={{
-          columns: ["id_livro", "titulo", "ano_publicacao"],
-          rows: [
-            ["-", "-", "-"],
-          ],
-        }}
+        resultTable={(exercise as any).example_result as { columns: string[]; rows: string[][] } | undefined}
       />
 
       <ExerciseErrorDialog
