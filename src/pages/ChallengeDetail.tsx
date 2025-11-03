@@ -86,6 +86,12 @@ const ChallengeDetail = () => {
     setCode(code + " " + keyword);
   };
 
+  const insertSkeleton = () => {
+    if (challenge?.skeleton) {
+      setCode(challenge.skeleton);
+    }
+  };
+
   const handleExecute = () => {
     if (!challenge) return;
 
@@ -306,6 +312,15 @@ const ChallengeDetail = () => {
                     >
                       {showSyntax ? "Ocultar Sintaxe" : "Mostrar Sintaxe"}
                     </Button>
+                    {challenge?.skeleton && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={insertSkeleton}
+                      >
+                        Exibir Exemplo
+                      </Button>
+                    )}
                   </div>
                   <Button onClick={handleExecute} size="lg">
                     <Play className="h-4 w-4 mr-2" />
