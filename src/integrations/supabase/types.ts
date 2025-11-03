@@ -98,7 +98,6 @@ export type Database = {
           hint: string | null
           id: number
           points: number | null
-          scenario: string
           title: string
           validation_rules: Json
         }
@@ -113,7 +112,6 @@ export type Database = {
           hint?: string | null
           id?: number
           points?: number | null
-          scenario: string
           title: string
           validation_rules: Json
         }
@@ -128,7 +126,6 @@ export type Database = {
           hint?: string | null
           id?: number
           points?: number | null
-          scenario?: string
           title?: string
           validation_rules?: Json
         }
