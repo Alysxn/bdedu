@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     if (!error) {
       toast.success('Login realizado com sucesso!');
-      navigate('/materiais');
+      navigate('/aulas');
     }
     
     return { error };

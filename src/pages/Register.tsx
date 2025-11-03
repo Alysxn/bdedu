@@ -18,7 +18,7 @@ const Register = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/materiais");
+      navigate("/aulas");
     }
   }, [user, navigate]);
 
@@ -51,7 +51,7 @@ const Register = () => {
         toast.error("Erro ao criar conta: " + error.message);
       }
     } else {
-      navigate("/materiais");
+      navigate("/aulas");
     }
   };
 
