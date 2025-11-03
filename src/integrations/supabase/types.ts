@@ -91,7 +91,10 @@ export type Database = {
           aula_id: number | null
           coins: number | null
           created_at: string | null
+          database_structure: Json | null
           description: string
+          example_data: Json | null
+          example_result: Json | null
           hint: string | null
           id: number
           points: number | null
@@ -103,7 +106,10 @@ export type Database = {
           aula_id?: number | null
           coins?: number | null
           created_at?: string | null
+          database_structure?: Json | null
           description: string
+          example_data?: Json | null
+          example_result?: Json | null
           hint?: string | null
           id?: number
           points?: number | null
@@ -115,7 +121,10 @@ export type Database = {
           aula_id?: number | null
           coins?: number | null
           created_at?: string | null
+          database_structure?: Json | null
           description?: string
+          example_data?: Json | null
+          example_result?: Json | null
           hint?: string | null
           id?: number
           points?: number | null
@@ -139,6 +148,7 @@ export type Database = {
           coins: number | null
           created_at: string | null
           description: string
+          example_result: Json | null
           hint: string | null
           id: number
           points: number | null
@@ -151,6 +161,7 @@ export type Database = {
           coins?: number | null
           created_at?: string | null
           description: string
+          example_result?: Json | null
           hint?: string | null
           id?: number
           points?: number | null
@@ -163,6 +174,7 @@ export type Database = {
           coins?: number | null
           created_at?: string | null
           description?: string
+          example_result?: Json | null
           hint?: string | null
           id?: number
           points?: number | null

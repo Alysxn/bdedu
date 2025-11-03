@@ -160,17 +160,85 @@ const ChallengeDetail = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-primary/20">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Info className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">Contexto</h3>
-                </div>
-                <div className="text-sm text-muted-foreground whitespace-pre-line font-mono">
-                  {challenge.scenario}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Database Structure */}
+            {challenge.database_structure && (
+              <Card className="border-primary/20">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Info className="h-5 w-5 text-primary" />
+                    <h3 className="text-lg font-semibold">Estrutura do Banco</h3>
+                  </div>
+                  <div className="space-y-4">
+                    {(challenge.database_structure as any[]).map((table: any, idx: number) => (
+                      <div key={idx} className="border rounded-lg overflow-hidden">
+                        <div className="bg-primary/10 px-3 py-2">
+                          <p className="text-sm font-semibold">{table.table}</p>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-muted">
+                              <tr>
+                                <th className="px-3 py-2 text-left">Coluna</th>
+                                <th className="px-3 py-2 text-left">Tipo</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {table.columns?.map((col: any, colIdx: number) => (
+                                <tr key={colIdx} className="border-t">
+                                  <td className="px-3 py-2">{col.name}</td>
+                                  <td className="px-3 py-2 text-muted-foreground">{col.type}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Example Data */}
+            {challenge.example_data && (
+              <Card className="border-primary/20">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Info className="h-5 w-5 text-primary" />
+                    <h3 className="text-lg font-semibold">Dados de Exemplo</h3>
+                  </div>
+                  <div className="space-y-4">
+                    {(challenge.example_data as any[]).map((table: any, idx: number) => (
+                      <div key={idx} className="border rounded-lg overflow-hidden">
+                        <div className="bg-primary/10 px-3 py-2">
+                          <p className="text-sm font-semibold">{table.table}</p>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-muted">
+                              <tr>
+                                {table.columns?.map((col: string, colIdx: number) => (
+                                  <th key={colIdx} className="px-3 py-2 text-left">{col}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {table.rows?.map((row: any[], rowIdx: number) => (
+                                <tr key={rowIdx} className="border-t">
+                                  {row.map((cell: any, cellIdx: number) => (
+                                    <td key={cellIdx} className="px-3 py-2">{cell}</td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
           </div>
 
