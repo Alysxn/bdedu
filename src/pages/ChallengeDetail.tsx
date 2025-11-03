@@ -50,7 +50,7 @@ const ChallengeDetail = () => {
         .maybeSingle();
       
       if (error) throw error;
-      return data;
+      return data as typeof data & { skeleton?: string | null };
     },
   });
 
