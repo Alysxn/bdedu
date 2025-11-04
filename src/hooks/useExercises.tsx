@@ -23,10 +23,31 @@ export const useExercises = () => {
     },
   });
 
-  // Check if exercise is unlocked (based on lesson unlock status)
-  const isExerciseUnlocked = (exerciseAulaId: number | null) => {
+  // Check if exercise is unlocked (based on lesson unlock status and previous exercise completion)
+  const isExerciseUnlocked = (exerciseId: number, exerciseAulaId: number | null) => {
     if (!exerciseAulaId) return true; // If no lesson link, always unlocked
-    return isLessonUnlocked(exerciseAulaId);
+    
+    // Check if lesson is unlocked
+    if (!isLessonUnlocked(exerciseAulaId)) return false;
+    
+    // Find all exercises for the same lesson, ordered by id
+    const lessonExercises = exercises
+      .filter(e => e.aula_id === exerciseAulaId)
+      .sort((a, b) => a.id - b.id);
+    
+    // Find the index of the current exercise
+    const currentIndex = lessonExercises.findIndex(e => e.id === exerciseId);
+    
+    // If it's the first exercise in the lesson, it's unlocked
+    if (currentIndex === 0) return true;
+    
+    // Check if the previous exercise is completed
+    const previousExercise = lessonExercises[currentIndex - 1];
+    const previousProgress = progress.find(
+      p => p.content_type === 'exercicio' && p.content_id === previousExercise.id
+    );
+    
+    return previousProgress?.completed || false;
   };
 
   // Get exercise progress
@@ -45,7 +66,7 @@ export const useExercises = () => {
     const { completed, attempts } = getExerciseProgress(exercise.id);
     return {
       ...exercise,
-      isUnlocked: isExerciseUnlocked(exercise.aula_id),
+      isUnlocked: isExerciseUnlocked(exercise.id, exercise.aula_id),
       completed,
       attempts,
     };
