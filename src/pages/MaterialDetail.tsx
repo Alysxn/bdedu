@@ -9,8 +9,8 @@ import { useMaterials } from "@/hooks/useMaterials";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-// Configure PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Configure PDF.js worker with explicit HTTPS
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const MaterialDetail = () => {
   const { id } = useParams();
@@ -56,6 +56,12 @@ const MaterialDetail = () => {
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
+    console.log('PDF loaded successfully:', numPages, 'pages');
+  };
+
+  const onDocumentLoadError = (error: Error) => {
+    console.error('PDF load error:', error);
+    console.error('PDF URL:', material?.pdf_url);
   };
 
   return (
@@ -96,14 +102,16 @@ const MaterialDetail = () => {
                 <Document
                   file={material.pdf_url}
                   onLoadSuccess={onDocumentLoadSuccess}
+                  onLoadError={onDocumentLoadError}
                   loading={
                     <div className="w-full h-96 flex items-center justify-center text-muted-foreground">
                       Carregando PDF...
                     </div>
                   }
                   error={
-                    <div className="w-full h-96 flex items-center justify-center text-destructive">
-                      Erro ao carregar PDF
+                    <div className="w-full h-96 flex flex-col items-center justify-center text-destructive gap-2">
+                      <p>Erro ao carregar PDF</p>
+                      <p className="text-sm text-muted-foreground">Verifique se o arquivo existe: {material.pdf_url}</p>
                     </div>
                   }
                 >
