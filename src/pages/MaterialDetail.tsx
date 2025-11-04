@@ -46,8 +46,10 @@ const MaterialDetail = () => {
   }
 
   const handleDownload = () => {
+    // Construct full URL with base path
+    const fullUrl = `${import.meta.env.BASE_URL}${material.pdf_url.replace(/^\//, '')}`;
     const link = document.createElement('a');
-    link.href = material.pdf_url;
+    link.href = fullUrl;
     link.download = `${material.title}.pdf`;
     document.body.appendChild(link);
     link.click();
@@ -63,6 +65,9 @@ const MaterialDetail = () => {
     console.error('PDF load error:', error);
     console.error('PDF URL:', material?.pdf_url);
   };
+
+  // Construct full PDF URL with base path
+  const pdfUrl = material ? `${import.meta.env.BASE_URL}${material.pdf_url.replace(/^\//, '')}` : '';
 
   return (
     <AppLayout>
@@ -100,7 +105,7 @@ const MaterialDetail = () => {
             <div className="flex flex-col items-center">
               <div className="border rounded-lg overflow-hidden bg-muted/20">
                 <Document
-                  file={material.pdf_url}
+                  file={pdfUrl}
                   onLoadSuccess={onDocumentLoadSuccess}
                   onLoadError={onDocumentLoadError}
                   loading={
@@ -111,7 +116,7 @@ const MaterialDetail = () => {
                   error={
                     <div className="w-full h-96 flex flex-col items-center justify-center text-destructive gap-2">
                       <p>Erro ao carregar PDF</p>
-                      <p className="text-sm text-muted-foreground">Verifique se o arquivo existe: {material.pdf_url}</p>
+                      <p className="text-sm text-muted-foreground">URL: {pdfUrl}</p>
                     </div>
                   }
                 >
