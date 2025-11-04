@@ -5,50 +5,34 @@ import { ArrowLeft, Download } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Document, Page, pdfjs } from "react-pdf";
 import { useState } from "react";
+import { useMaterials } from "@/hooks/useMaterials";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-const materials = [
-  {
-    id: 1,
-    category: "Basic SQL",
-    title: "Introduction to SQL",
-    description: "Learn the fundamentals of SQL, including data retrieval, filtering, and sorting.",
-    pdfUrl: "/sample-material.pdf",
-  },
-  {
-    id: 2,
-    category: "Advanced SQL",
-    title: "Mastering SQL Queries",
-    description: "Dive deeper into SQL with advanced querying techniques, joins, and subqueries.",
-    pdfUrl: "/sample-material.pdf",
-  },
-  {
-    id: 3,
-    category: "SQL Optimization",
-    title: "Optimizing SQL Performance",
-    description: "Enhance your SQL skills by learning how to optimize queries for better performance.",
-    pdfUrl: "/sample-material.pdf",
-  },
-  {
-    id: 4,
-    category: "SQL Best Practices",
-    title: "SQL Coding Standards",
-    description: "Follow industry best practices for writing clean, maintainable, and efficient SQL code.",
-    pdfUrl: "/sample-material.pdf",
-  },
-];
-
 const MaterialDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
+  const { materials, isLoading } = useMaterials();
 
   const material = materials.find((m) => m.id === Number(id));
+
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Carregando material...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (!material) {
     return (
@@ -60,6 +44,15 @@ const MaterialDetail = () => {
       </AppLayout>
     );
   }
+
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = material.pdf_url;
+    link.download = `${material.title}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -85,7 +78,7 @@ const MaterialDetail = () => {
                 <CardTitle className="text-3xl mb-2">{material.title}</CardTitle>
                 <p className="text-muted-foreground">{material.description}</p>
               </div>
-              <Button variant="outline">
+              <Button variant="outline" onClick={handleDownload}>
                 <Download className="h-4 w-4 mr-2" />
                 Baixar PDF
               </Button>
@@ -101,7 +94,7 @@ const MaterialDetail = () => {
             <div className="flex flex-col items-center">
               <div className="border rounded-lg overflow-hidden bg-muted/20">
                 <Document
-                  file={material.pdfUrl}
+                  file={material.pdf_url}
                   onLoadSuccess={onDocumentLoadSuccess}
                   loading={
                     <div className="w-full h-96 flex items-center justify-center text-muted-foreground">
