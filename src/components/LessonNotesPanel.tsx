@@ -60,6 +60,18 @@ export const LessonNotesPanel = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const editEditorRef = useRef<HTMLDivElement>(null);
   const [fontSize, setFontSize] = useState("14");
+  const [activeFormats, setActiveFormats] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    highlight: false
+  });
+  const [editActiveFormats, setEditActiveFormats] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    highlight: false
+  });
 
   // Fetch notes for this lesson
   const { data: notes = [], isLoading } = useQuery({
@@ -193,6 +205,22 @@ export const LessonNotesPanel = ({
     updateNoteMutation.mutate({ id, timestamp: totalSeconds });
   };
 
+  const updateFormatStates = (editorElement?: HTMLDivElement | null) => {
+    const isEditEditor = editorElement === editEditorRef.current;
+    const setFormats = isEditEditor ? setEditActiveFormats : setActiveFormats;
+    
+    try {
+      setFormats({
+        bold: document.queryCommandState('bold'),
+        italic: document.queryCommandState('italic'),
+        underline: document.queryCommandState('underline'),
+        highlight: document.queryCommandState('hiliteColor')
+      });
+    } catch (e) {
+      // Ignore errors when commands aren't available
+    }
+  };
+
   const applyFormatting = (command: string, editorElement?: HTMLDivElement | null) => {
     const editor = editorElement || editorRef.current;
     if (!editor) return;
@@ -213,6 +241,9 @@ export const LessonNotesPanel = ({
         document.execCommand('hiliteColor', false, '#ffff00');
         break;
     }
+    
+    // Update format states after applying formatting
+    setTimeout(() => updateFormatStates(editorElement), 10);
   };
 
   const formatTime = (seconds: number) => {
@@ -243,7 +274,7 @@ export const LessonNotesPanel = ({
           {/* Formatting Toolbar */}
           <div className="flex items-center gap-2 flex-wrap">
             <Button
-              variant="outline"
+              variant={activeFormats.bold ? "default" : "outline"}
               size="sm"
               onClick={() => applyFormatting('bold')}
               title="Negrito"
@@ -251,7 +282,7 @@ export const LessonNotesPanel = ({
               <Bold className="h-4 w-4" />
             </Button>
             <Button
-              variant="outline"
+              variant={activeFormats.italic ? "default" : "outline"}
               size="sm"
               onClick={() => applyFormatting('italic')}
               title="Itálico"
@@ -259,7 +290,7 @@ export const LessonNotesPanel = ({
               <Italic className="h-4 w-4" />
             </Button>
             <Button
-              variant="outline"
+              variant={activeFormats.underline ? "default" : "outline"}
               size="sm"
               onClick={() => applyFormatting('underline')}
               title="Sublinhado"
@@ -267,7 +298,7 @@ export const LessonNotesPanel = ({
               <Underline className="h-4 w-4" />
             </Button>
             <Button
-              variant="outline"
+              variant={activeFormats.highlight ? "default" : "outline"}
               size="sm"
               onClick={() => applyFormatting('highlight')}
               title="Destacar"
@@ -301,6 +332,9 @@ export const LessonNotesPanel = ({
                 target.innerHTML = "";
               }
             }}
+            onKeyUp={() => updateFormatStates()}
+            onMouseUp={() => updateFormatStates()}
+            onClick={() => updateFormatStates()}
           />
 
           <Button 
@@ -428,7 +462,7 @@ export const LessonNotesPanel = ({
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Button
-                          variant="outline"
+                          variant={editActiveFormats.bold ? "default" : "outline"}
                           size="sm"
                           onClick={() => applyFormatting('bold', editEditorRef.current)}
                           title="Negrito"
@@ -436,7 +470,7 @@ export const LessonNotesPanel = ({
                           <Bold className="h-4 w-4" />
                         </Button>
                         <Button
-                          variant="outline"
+                          variant={editActiveFormats.italic ? "default" : "outline"}
                           size="sm"
                           onClick={() => applyFormatting('italic', editEditorRef.current)}
                           title="Itálico"
@@ -444,7 +478,7 @@ export const LessonNotesPanel = ({
                           <Italic className="h-4 w-4" />
                         </Button>
                         <Button
-                          variant="outline"
+                          variant={editActiveFormats.underline ? "default" : "outline"}
                           size="sm"
                           onClick={() => applyFormatting('underline', editEditorRef.current)}
                           title="Sublinhado"
@@ -452,7 +486,7 @@ export const LessonNotesPanel = ({
                           <Underline className="h-4 w-4" />
                         </Button>
                         <Button
-                          variant="outline"
+                          variant={editActiveFormats.highlight ? "default" : "outline"}
                           size="sm"
                           onClick={() => applyFormatting('highlight', editEditorRef.current)}
                           title="Destacar"
@@ -470,6 +504,9 @@ export const LessonNotesPanel = ({
                             target.innerHTML = "";
                           }
                         }}
+                        onKeyUp={() => updateFormatStates(editEditorRef.current)}
+                        onMouseUp={() => updateFormatStates(editEditorRef.current)}
+                        onClick={() => updateFormatStates(editEditorRef.current)}
                       />
                     </div>
                   ) : (
