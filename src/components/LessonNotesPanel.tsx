@@ -210,11 +210,28 @@ export const LessonNotesPanel = ({
     const setFormats = isEditEditor ? setEditActiveFormats : setActiveFormats;
     
     try {
+      const selection = window.getSelection();
+      let isHighlighted = false;
+      
+      // Check if current selection has yellow background
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const parentElement = range.commonAncestorContainer.parentElement;
+        if (parentElement) {
+          const bgColor = window.getComputedStyle(parentElement).backgroundColor;
+          // Check for yellow highlight (rgb(255, 255, 0) or variations)
+          isHighlighted = bgColor === 'rgb(255, 255, 0)' || 
+                         bgColor === 'yellow' ||
+                         parentElement.style.backgroundColor === 'rgb(255, 255, 0)' ||
+                         parentElement.style.backgroundColor === 'yellow';
+        }
+      }
+      
       setFormats({
         bold: document.queryCommandState('bold'),
         italic: document.queryCommandState('italic'),
         underline: document.queryCommandState('underline'),
-        highlight: document.queryCommandState('hiliteColor')
+        highlight: isHighlighted
       });
     } catch (e) {
       // Ignore errors when commands aren't available
@@ -225,7 +242,17 @@ export const LessonNotesPanel = ({
     const editor = editorElement || editorRef.current;
     if (!editor) return;
 
+    // Save selection before focusing
+    const selection = window.getSelection();
+    const range = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+    
     editor.focus();
+    
+    // Restore selection
+    if (range && selection) {
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
     
     switch (command) {
       case 'bold':
@@ -238,7 +265,7 @@ export const LessonNotesPanel = ({
         document.execCommand('underline', false);
         break;
       case 'highlight':
-        document.execCommand('hiliteColor', false, '#ffff00');
+        document.execCommand('backColor', false, '#ffff00');
         break;
     }
     
