@@ -85,4 +85,17 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
     font-family: 'MADE Carving', sans-serif;
   }
+  
+  /* ContentEditable placeholder styling */
+  [contenteditable][data-placeholder]:empty:before {
+    content: attr(data-placeholder);
+    @apply text-muted-foreground;
+    pointer-events: none;
+    position: absolute;
+  }
+  
+  /* Ensure contentEditable respects formatting */
+  [contenteditable] {
+    @apply outline-none;
+  }
 }

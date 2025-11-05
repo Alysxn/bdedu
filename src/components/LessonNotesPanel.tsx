@@ -55,10 +55,11 @@ export const LessonNotesPanel = ({
   const [newNoteContent, setNewNoteContent] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [editingTimestamp, setEditingTimestamp] = useState<string | null>(null);
+  const [editTimestampValue, setEditTimestampValue] = useState("");
+  const editorRef = useRef<HTMLDivElement>(null);
+  const editEditorRef = useRef<HTMLDivElement>(null);
   const [fontSize, setFontSize] = useState("14");
-  const [textColor, setTextColor] = useState("#000000");
-  const [highlightColor, setHighlightColor] = useState("#ffff00");
 
   // Fetch notes for this lesson
   const { data: notes = [], isLoading } = useQuery({
@@ -117,10 +118,14 @@ export const LessonNotesPanel = ({
 
   // Update note mutation
   const updateNoteMutation = useMutation({
-    mutationFn: async ({ id, content }: { id: string; content: string }) => {
+    mutationFn: async ({ id, content, timestamp }: { id: string; content?: string; timestamp?: number }) => {
+      const updateData: any = {};
+      if (content !== undefined) updateData.content = content;
+      if (timestamp !== undefined) updateData.timestamp_seconds = timestamp;
+      
       const { error } = await supabase
         .from('lesson_notes')
-        .update({ content })
+        .update(updateData)
         .eq('id', id);
       
       if (error) throw error;
@@ -129,6 +134,8 @@ export const LessonNotesPanel = ({
       queryClient.invalidateQueries({ queryKey: ['lesson-notes', lessonId, user?.id] });
       setEditingNoteId(null);
       setEditContent("");
+      setEditingTimestamp(null);
+      setEditTimestampValue("");
       toast.success("Nota atualizada!");
     },
     onError: () => {
@@ -156,66 +163,56 @@ export const LessonNotesPanel = ({
   });
 
   const handleAddNote = () => {
-    if (!newNoteContent.trim()) {
+    const content = editorRef.current?.innerHTML || "";
+    if (!content.trim() || content === "<br>") {
       toast.error("Digite algo antes de salvar");
       return;
     }
-    createNoteMutation.mutate(newNoteContent);
+    createNoteMutation.mutate(content);
+    if (editorRef.current) {
+      editorRef.current.innerHTML = "";
+    }
   };
 
   const handleUpdateNote = (id: string) => {
-    if (!editContent.trim()) {
+    const content = editEditorRef.current?.innerHTML || "";
+    if (!content.trim() || content === "<br>") {
       toast.error("A nota não pode estar vazia");
       return;
     }
-    updateNoteMutation.mutate({ id, content: editContent });
+    updateNoteMutation.mutate({ id, content });
   };
 
-  const applyFormatting = (command: string, value?: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = newNoteContent.substring(start, end);
-    
-    if (!selectedText) {
-      toast.error("Selecione um texto primeiro");
+  const handleUpdateTimestamp = (id: string) => {
+    const [mins, secs] = editTimestampValue.split(':').map(Number);
+    if (isNaN(mins) || isNaN(secs)) {
+      toast.error("Formato inválido. Use MM:SS");
       return;
     }
+    const totalSeconds = mins * 60 + secs;
+    updateNoteMutation.mutate({ id, timestamp: totalSeconds });
+  };
 
-    let formattedText = selectedText;
+  const applyFormatting = (command: string, editorElement?: HTMLDivElement | null) => {
+    const editor = editorElement || editorRef.current;
+    if (!editor) return;
+
+    editor.focus();
     
     switch (command) {
       case 'bold':
-        formattedText = `**${selectedText}**`;
+        document.execCommand('bold', false);
         break;
       case 'italic':
-        formattedText = `*${selectedText}*`;
+        document.execCommand('italic', false);
         break;
       case 'underline':
-        formattedText = `__${selectedText}__`;
+        document.execCommand('underline', false);
         break;
       case 'highlight':
-        formattedText = `==${selectedText}==`;
-        break;
-      case 'color':
-        formattedText = `[${selectedText}](color:${value})`;
+        document.execCommand('hiliteColor', false, '#ffff00');
         break;
     }
-
-    const newContent = 
-      newNoteContent.substring(0, start) + 
-      formattedText + 
-      newNoteContent.substring(end);
-    
-    setNewNoteContent(newContent);
-    
-    // Refocus and set cursor position
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start, start + formattedText.length);
-    }, 0);
   };
 
   const formatTime = (seconds: number) => {
@@ -292,13 +289,18 @@ export const LessonNotesPanel = ({
             </Select>
           </div>
 
-          <Textarea
-            ref={textareaRef}
-            placeholder="Digite sua nota aqui..."
-            value={newNoteContent}
-            onChange={(e) => setNewNoteContent(e.target.value)}
-            className="min-h-[100px] resize-none"
+          <div
+            ref={editorRef}
+            contentEditable
+            className="min-h-[100px] p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background"
             style={{ fontSize: `${fontSize}px` }}
+            data-placeholder="Digite sua nota aqui..."
+            onInput={(e) => {
+              const target = e.target as HTMLDivElement;
+              if (target.textContent?.trim() === "") {
+                target.innerHTML = "";
+              }
+            }}
           />
 
           <Button 
@@ -331,18 +333,69 @@ export const LessonNotesPanel = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Clock className="h-3 w-3" />
-                      <span>{formatTime(note.timestamp_seconds)}</span>
+                      {editingTimestamp === note.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={editTimestampValue}
+                            onChange={(e) => setEditTimestampValue(e.target.value)}
+                            placeholder="MM:SS"
+                            className="w-16 px-2 py-1 text-xs border rounded"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleUpdateTimestamp(note.id)}
+                            disabled={updateNoteMutation.isPending}
+                          >
+                            <Save className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingTimestamp(null);
+                              setEditTimestampValue("");
+                            }}
+                          >
+                            ✕
+                          </Button>
+                        </div>
+                      ) : (
+                        <span
+                          className="cursor-pointer hover:underline"
+                          onClick={() => {
+                            setEditingTimestamp(note.id);
+                            setEditTimestampValue(formatTime(note.timestamp_seconds));
+                          }}
+                          title="Clique para editar"
+                        >
+                          {formatTime(note.timestamp_seconds)}
+                        </span>
+                      )}
                     </div>
                     <div className="flex gap-1">
                       {editingNoteId === note.id ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleUpdateNote(note.id)}
-                          disabled={updateNoteMutation.isPending}
-                        >
-                          <Save className="h-4 w-4" />
-                        </Button>
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleUpdateNote(note.id)}
+                            disabled={updateNoteMutation.isPending}
+                          >
+                            <Save className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingNoteId(null);
+                              setEditContent("");
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                        </>
                       ) : (
                         <Button
                           variant="ghost"
@@ -350,6 +403,11 @@ export const LessonNotesPanel = ({
                           onClick={() => {
                             setEditingNoteId(note.id);
                             setEditContent(note.content);
+                            setTimeout(() => {
+                              if (editEditorRef.current) {
+                                editEditorRef.current.innerHTML = note.content;
+                              }
+                            }, 0);
                           }}
                         >
                           Editar
@@ -367,15 +425,58 @@ export const LessonNotesPanel = ({
                   </div>
                   
                   {editingNoteId === note.id ? (
-                    <Textarea
-                      value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      className="min-h-[80px]"
-                    />
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => applyFormatting('bold', editEditorRef.current)}
+                          title="Negrito"
+                        >
+                          <Bold className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => applyFormatting('italic', editEditorRef.current)}
+                          title="Itálico"
+                        >
+                          <Italic className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => applyFormatting('underline', editEditorRef.current)}
+                          title="Sublinhado"
+                        >
+                          <Underline className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => applyFormatting('highlight', editEditorRef.current)}
+                          title="Destacar"
+                        >
+                          <Highlighter className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div
+                        ref={editEditorRef}
+                        contentEditable
+                        className="min-h-[80px] p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background"
+                        onInput={(e) => {
+                          const target = e.target as HTMLDivElement;
+                          if (target.textContent?.trim() === "") {
+                            target.innerHTML = "";
+                          }
+                        }}
+                      />
+                    </div>
                   ) : (
-                    <p className="text-sm whitespace-pre-wrap break-words">
-                      {note.content}
-                    </p>
+                    <div 
+                      className="text-sm break-words prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: note.content }}
+                    />
                   )}
                   
                   <div className="text-xs text-muted-foreground">
