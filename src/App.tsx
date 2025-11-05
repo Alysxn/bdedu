@@ -18,6 +18,7 @@ import ChallengeDetail from "./pages/ChallengeDetail";
 import Achievements from "./pages/Achievements";
 import Store from "./pages/Store";
 import Profile from "./pages/Profile";
+import Ranking from "./pages/Ranking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/desafios" element={<ProtectedRoute><Challenges /></ProtectedRoute>} />
             <Route path="/desafios/:id" element={<ProtectedRoute><ChallengeDetail /></ProtectedRoute>} />
             <Route path="/conquistas" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
+            <Route path="/ranking" element={<ProtectedRoute><Ranking /></ProtectedRoute>} />
             <Route path="/loja" element={<ProtectedRoute><Store /></ProtectedRoute>} />
             <Route path="/meuperfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
