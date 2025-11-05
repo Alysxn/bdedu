@@ -265,7 +265,17 @@ export const LessonNotesPanel = ({
         document.execCommand('underline', false);
         break;
       case 'highlight':
-        document.execCommand('backColor', false, '#ffff00');
+        // Check if already highlighted to toggle
+        const isEditEditor = editorElement === editEditorRef.current;
+        const formats = isEditEditor ? editActiveFormats : activeFormats;
+        
+        if (formats.highlight) {
+          // Remove highlight by setting background to transparent
+          document.execCommand('backColor', false, 'transparent');
+        } else {
+          // Add yellow highlight
+          document.execCommand('backColor', false, '#ffff00');
+        }
         break;
     }
     
