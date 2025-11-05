@@ -3,7 +3,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, Target, ListChecks, ArrowRight } from "lucide-react";
+import { ArrowLeft, FileText, Target, ListChecks, ArrowRight, FileEdit } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ import { useLessons } from "@/hooks/useLessons";
 import { useProfile } from "@/hooks/useProfile";
 import { useAchievements } from "@/hooks/useAchievements";
 import { YouTubePlayer } from "@/components/YouTubePlayer";
+import { LessonNotesPanel } from "@/components/LessonNotesPanel";
 
 const ClassDetail = () => {
   const navigate = useNavigate();
@@ -20,6 +21,8 @@ const ClassDetail = () => {
   const [activeTab, setActiveTab] = useState("descricao");
   const [playing, setPlaying] = useState(false);
   const [played, setPlayed] = useState(0);
+  const [playedSeconds, setPlayedSeconds] = useState(0);
+  const [notesOpen, setNotesOpen] = useState(false);
   const lastProgressRef = useRef(0);
 
   const { updateProgress, getProgress } = useProgress();
@@ -95,6 +98,7 @@ const ClassDetail = () => {
   const handleProgress = (state: { played: number; playedSeconds: number }) => {
     const progress = Math.round(state.played * 100);
     setPlayed(state.played);
+    setPlayedSeconds(state.playedSeconds);
 
     // Update backend every 5% progress or on completion
     if (progress >= lastProgressRef.current + 5 || progress === 100) {
@@ -165,14 +169,26 @@ const ClassDetail = () => {
           <h1 className="text-4xl font-bold mb-6 text-foreground text-center">{lesson.title}</h1>
           
           <div className="w-full max-w-4xl mx-auto mb-6">
-            <div className="relative bg-muted rounded-lg overflow-hidden">
-              <YouTubePlayer
-                url={videoUrl}
-                playing={playing}
-                onPlay={() => setPlaying(true)}
-                onPause={() => setPlaying(false)}
-                onProgress={handleProgress}
-              />
+            <div className="flex items-start gap-4">
+              <div className="relative bg-muted rounded-lg overflow-hidden flex-1">
+                <YouTubePlayer
+                  url={videoUrl}
+                  playing={playing}
+                  onPlay={() => setPlaying(true)}
+                  onPause={() => setPlaying(false)}
+                  onProgress={handleProgress}
+                />
+              </div>
+              
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setNotesOpen(true)}
+                className="flex-shrink-0 h-auto py-4"
+              >
+                <FileEdit className="h-5 w-5 mr-2" />
+                Notas
+              </Button>
             </div>
             <div className="mt-4">
               <div className="bg-muted rounded-full h-2 mb-2">
@@ -360,6 +376,14 @@ const ClassDetail = () => {
           </Tabs>
         </div>
       </div>
+
+      <LessonNotesPanel
+        open={notesOpen}
+        onOpenChange={setNotesOpen}
+        lessonId={lessonId}
+        currentVideoTime={playedSeconds}
+        onPause={() => setPlaying(false)}
+      />
     </AppLayout>
   );
 };
