@@ -63,8 +63,19 @@ const ExerciseDetail = () => {
 
     // Validate using keywords from backend
     const codeUpper = code.toUpperCase();
-    const validationRules = exercise.validation_rules as { keywords: string[] };
-    const allKeywordsPresent = validationRules.keywords.every(keyword =>
+    const validationRules = exercise.validation_rules as any;
+    
+    // Support both 'keywords' and 'required_keywords' formats
+    const keywordsToCheck = validationRules?.keywords || validationRules?.required_keywords || [];
+    
+    // Ensure keywordsToCheck is an array
+    if (!Array.isArray(keywordsToCheck)) {
+      console.error('Invalid validation rules format:', validationRules);
+      setShowError(true);
+      return;
+    }
+    
+    const allKeywordsPresent = keywordsToCheck.every((keyword: string) =>
       codeUpper.includes(keyword.toUpperCase())
     );
 
