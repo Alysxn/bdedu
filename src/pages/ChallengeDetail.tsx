@@ -144,8 +144,8 @@ const ChallengeDetail = () => {
           </h1>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column: Objetivo + SQL Editor */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* First Column: Objetivo */}
           <div className="space-y-4">
             {/* Objetivo Card */}
             <Card className="border-primary/20">
@@ -168,7 +168,20 @@ const ChallengeDetail = () => {
               </CardContent>
             </Card>
 
-            {/* SQL Editor Card */}
+            {challenge.hint && (
+              <Card className="bg-primary/5 border-primary/20">
+                <CardContent className="pt-6">
+                  <h4 className="font-semibold text-sm mb-3 text-foreground">💡 Dica:</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">
+                    {challenge.hint}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Second Column: SQL Editor */}
+          <div className="space-y-4">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2 mb-4">
@@ -179,7 +192,7 @@ const ChallengeDetail = () => {
                 <div className="border rounded-lg overflow-hidden">
                   <CodeMirror
                     value={code}
-                    height="500px"
+                    height="400px"
                     extensions={[sql()]}
                     onChange={(value) => setCode(value)}
                     theme="light"
@@ -238,104 +251,91 @@ const ChallengeDetail = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {challenge.hint && (
-              <Card className="bg-primary/5 border-primary/20">
-                <CardContent className="pt-6">
-                  <h4 className="font-semibold text-sm mb-3 text-foreground">💡 Dica:</h4>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">
-                    {challenge.hint}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
           </div>
 
-          {/* Right Column: Database Structure + Example Data */}
+          {/* Third Column: Combined Database Info */}
           <div className="space-y-4">
-            {/* Database Structure */}
-            {challenge.database_structure && (
-              <Card className="border-primary/20">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Info className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-semibold">Estrutura do Banco</h3>
-                  </div>
-                  <ScrollArea className="h-[400px] pr-4">
-                    <div className="space-y-4">
-                      {(challenge.database_structure as any[]).map((table: any, idx: number) => (
-                        <div key={idx} className="border rounded-lg overflow-hidden">
-                          <div className="bg-primary/10 px-3 py-2">
-                            <p className="text-sm font-semibold">{table.table}</p>
-                          </div>
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                              <thead className="bg-muted">
-                                <tr>
-                                  <th className="px-3 py-2 text-left">Coluna</th>
-                                  <th className="px-3 py-2 text-left">Tipo</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {table.columns?.map((col: any, colIdx: number) => (
-                                  <tr key={colIdx} className="border-t">
-                                    <td className="px-3 py-2">{col.name}</td>
-                                    <td className="px-3 py-2 text-muted-foreground">{col.type}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Example Data */}
-            {challenge.example_data && (
-              <Card className="border-primary/20">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Info className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-semibold">Dados de Exemplo</h3>
-                  </div>
-                  <ScrollArea className="h-[400px] pr-4">
-                    <div className="space-y-4">
-                      {(challenge.example_data as any[]).map((table: any, idx: number) => (
-                        <div key={idx} className="border rounded-lg overflow-hidden">
-                          <div className="bg-primary/10 px-3 py-2">
-                            <p className="text-sm font-semibold">{table.table}</p>
-                          </div>
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                              <thead className="bg-muted">
-                                <tr>
-                                  {table.columns?.map((col: string, colIdx: number) => (
-                                    <th key={colIdx} className="px-3 py-2 text-left">{col}</th>
-                                  ))}
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {table.rows?.map((row: any[], rowIdx: number) => (
-                                  <tr key={rowIdx} className="border-t">
-                                    {row.map((cell: any, cellIdx: number) => (
-                                      <td key={cellIdx} className="px-3 py-2">{cell}</td>
+            <Card className="border-primary/20">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Info className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold">Informações do Banco</h3>
+                </div>
+                <ScrollArea className="h-[600px] pr-4">
+                  <div className="space-y-6">
+                    {/* Database Structure Section */}
+                    {challenge.database_structure && (
+                      <div>
+                        <h4 className="font-semibold text-sm mb-3 text-primary">Estrutura do Banco</h4>
+                        <div className="space-y-4">
+                          {(challenge.database_structure as any[]).map((table: any, idx: number) => (
+                            <div key={idx} className="border rounded-lg overflow-hidden">
+                              <div className="bg-primary/10 px-3 py-2">
+                                <p className="text-sm font-semibold">{table.table}</p>
+                              </div>
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                  <thead className="bg-muted">
+                                    <tr>
+                                      <th className="px-3 py-2 text-left">Coluna</th>
+                                      <th className="px-3 py-2 text-left">Tipo</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {table.columns?.map((col: any, colIdx: number) => (
+                                      <tr key={colIdx} className="border-t">
+                                        <td className="px-3 py-2">{col.name}</td>
+                                        <td className="px-3 py-2 text-muted-foreground">{col.type}</td>
+                                      </tr>
                                     ))}
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            )}
+                      </div>
+                    )}
+
+                    {/* Example Data Section */}
+                    {challenge.example_data && (
+                      <div>
+                        <h4 className="font-semibold text-sm mb-3 text-primary">Dados de Exemplo</h4>
+                        <div className="space-y-4">
+                          {(challenge.example_data as any[]).map((table: any, idx: number) => (
+                            <div key={idx} className="border rounded-lg overflow-hidden">
+                              <div className="bg-primary/10 px-3 py-2">
+                                <p className="text-sm font-semibold">{table.table}</p>
+                              </div>
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                  <thead className="bg-muted">
+                                    <tr>
+                                      {table.columns?.map((col: string, colIdx: number) => (
+                                        <th key={colIdx} className="px-3 py-2 text-left">{col}</th>
+                                      ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {table.rows?.map((row: any[], rowIdx: number) => (
+                                      <tr key={rowIdx} className="border-t">
+                                        {row.map((cell: any, cellIdx: number) => (
+                                          <td key={cellIdx} className="px-3 py-2">{cell}</td>
+                                        ))}
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
